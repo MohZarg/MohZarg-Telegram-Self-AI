@@ -229,7 +229,7 @@ def status():
             "audit_log": True,
             "ai_provider_interface": True,
             "ollama_adapter": True,
-            "telegram_bot": False,
+            "telegram_bot": getattr(app.state, "telegram_bot", None) is not None,
             "mtproto_account": False,
             "ai_assistant_workflow": False,
             "content_engine": False,
