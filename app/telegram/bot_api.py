@@ -34,11 +34,13 @@ class TelegramBotAPI:
         self._timeout_seconds = timeout_seconds
         self._transport = transport
 
-    async def _request(self, method: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    async def _request(
+        self, method: str, payload: dict[str, Any] | None = None, *, timeout_seconds: float | None = None
+    ) -> Any:
         try:
             async with httpx.AsyncClient(
                 base_url=f"https://api.telegram.org/bot{self._token}/",
-                timeout=self._timeout_seconds,
+                timeout=timeout_seconds or self._timeout_seconds,
                 transport=self._transport,
             ) as client:
                 response = await client.post(method, json=payload or {})
@@ -50,7 +52,7 @@ class TelegramBotAPI:
         if not isinstance(body, dict) or body.get("ok") is not True:
             raise TelegramBotApiError("Telegram Bot API returned an unsuccessful response")
         result = body.get("result")
-        if not isinstance(result, dict):
+        if not isinstance(result, (dict, list)):
             raise TelegramBotApiError("Telegram Bot API returned an invalid response shape")
         return result
 
@@ -68,3 +70,15 @@ class TelegramBotAPI:
             "sendMessage",
             {"chat_id": self._admin_chat_id, "text": text.strip()},
         )
+
+    async def get_updates(self, *, offset: int | None = None, timeout: int = 20) -> list[dict[str, Any]]:
+        """Long-poll message updates; this client does not configure webhooks."""
+        if not 0 <= timeout <= 25:
+            raise ValueError("poll timeout must be between 0 and 25 seconds")
+        payload: dict[str, Any] = {"timeout": timeout, "allowed_updates": ["message"]}
+        if offset is not None:
+            payload["offset"] = offset
+        result = await self._request("getUpdates", payload, timeout_seconds=max(self._timeout_seconds, timeout + 5))
+        if not isinstance(result, list) or any(not isinstance(item, dict) for item in result):
+            raise TelegramBotApiError("Telegram Bot API returned invalid updates")
+        return result
