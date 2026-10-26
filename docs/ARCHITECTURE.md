@@ -1,23 +1,35 @@
-# Architecture — Initial Implementation
+# Architecture — Incremental Implementation
 
 ## Current executable slice
 
-- **FastAPI application** in app/main.py serves a small local dashboard and JSON health/status endpoints.
-- **Settings loader** in app/config.py validates basic environment configuration without printing or returning credentials.
-- **Tests** in tests/test_app.py cover the health API, security headers, status flags, dashboard response, donation URL validation, and port validation.
-- **Container** in Dockerfile and docker-compose.yml runs the web service as a non-root user and binds the host port to loopback by default.
-- **CI** in .github/workflows/ci.yml runs compile checks and tests on Python 3.11 and 3.12.
+- **FastAPI** serves a local status dashboard and health/status endpoints.
+- **Settings** validates basic environment configuration without returning credentials.
+- **Automation engine** evaluates typed, declarative rules using an allowlisted trigger/condition/action model. It never executes user-supplied code and delegates actions to explicitly registered handlers.
+- **SQLite job store** persists one-shot scheduled jobs and supports due-job lookup and lifecycle status updates. A background worker, retries, and distributed locking are not implemented yet.
+- **Session vault** encrypts/decrypts serialized session bytes using Fernet authenticated encryption. The key must be supplied out of band; Telegram login, session revocation, and MTProto integration are not implemented yet.
+- **AI provider adapter** defines a provider-independent interface, a disabled fallback, and an Ollama HTTP adapter with bounded timeout and response handling. No AI operation is exposed as an autonomous account action.
+- **CI and tests** cover the app foundation plus automation, scheduler, session vault, and provider fallback.
 
-## Planned module boundaries
+## Intended module boundaries
 
-Future modules should be introduced behind small interfaces rather than coupled directly to HTTP handlers:
+- `app/telegram/`: Bot API and user-authorized MTProto clients; session lifecycle and rate-aware operations.
+- `app/ai/`: provider adapters, model configuration, prompt handling, and redaction.
+- `app/content/`: draft generation, review, and explicit publishing confirmation.
+- `app/automation/`: validated rules, permission gates, execution records, cancellation, and audit events.
+- `app/scheduler/`: durable jobs, retry policy, worker loop, and safe shutdown.
+- `app/security/`: secret redaction, encryption, authorization, and session lifecycle safeguards.
+- `app/monitoring/`: health, metrics, and redacted diagnostics.
+- `app/dashboard/`: authenticated configuration and operation views.
+- Future platform integrations: commerce, support, advertising, and optional n8n bridge should use the same policy-controlled service layer rather than duplicate business logic.
 
-- telegram/: Bot API and user-authorized MTProto clients; secure session lifecycle.
-- ai/: provider interface, model configuration, prompt handling, and redaction.
-- content/: draft generation, review, and explicit publishing confirmation.
-- automation/: validated rules, execution records, cancellation, and permission checks.
-- scheduler/: durable jobs, retry policy, and safe shutdown.
-- monitoring/: health, metrics, and redacted diagnostics.
-- dashboard/: authenticated configuration and operation views.
+## Security invariants
 
-These modules are planned, not implemented. No credentials, Telegram session files, or provider keys belong in the repository. Production deployment must add authentication and authorization before exposing operational controls beyond a trusted local environment.
+- No session data, API hashes, bot tokens, AI keys, or private user data in Git, frontend bundles, logs, or API responses.
+- AI may propose intents/actions, but a policy and permission layer must validate them before execution.
+- Operational dashboard controls must be authenticated and authorized before public deployment.
+- Actions must respect Telegram limits and user authorization; no unsolicited bulk messaging or evasion behavior.
+- Donation support is optional and never gates functionality.
+
+## Honest implementation boundary
+
+This branch contains infrastructure primitives only. It does **not** yet connect to Telegram Bot API or MTProto, run a scheduler worker, provide account login/2FA, expose a production admin dashboard, implement RBAC/audit persistence, or complete FA/EN localization. Those must remain marked as pending until implemented and tested.
