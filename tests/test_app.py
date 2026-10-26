@@ -36,9 +36,20 @@ def test_status_marks_unimplemented_features(monkeypatch):
 def test_dashboard_renders_and_checks_health():
     response = client.get("/")
     assert response.status_code == 200
-    assert "Telegram Self AI" in response.text
+    assert "GhYiAb Self" in response.text
     assert "Free &amp; Open Source" in response.text
+    assert "Creator · MohZarg" in response.text
+    assert "https://MohZarg.ir" in response.text
+    assert "does not unlock features" in response.text
     assert "/api/health" in response.text
+
+
+def test_creator_promotion_is_disclosed_and_does_not_gate_features():
+    response = client.get("/")
+    assert response.status_code == 200
+    assert "Creator · MohZarg" in response.text
+    assert "optional" in response.text
+    assert "does not unlock features" in response.text
 
 
 def test_donation_only_accepts_https(monkeypatch):
