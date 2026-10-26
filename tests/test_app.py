@@ -133,3 +133,20 @@ def test_production_throttles_repeated_failed_authentication(monkeypatch):
     assert blocked.status_code == 429
     assert blocked.headers["retry-after"]
     main_module._auth_failures.clear()
+
+
+def test_production_rejects_weak_admin_password(monkeypatch):
+    monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.setenv("ADMIN_USERNAME", "owner")
+    monkeypatch.setenv("ADMIN_PASSWORD", "weak")
+    response = client.get("/api/status")
+    assert response.status_code == 503
+    assert "not configured safely" in response.json()["detail"]
+
+
+def test_production_rejects_malformed_admin_username(monkeypatch):
+    monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.setenv("ADMIN_USERNAME", "bad:name")
+    monkeypatch.setenv("ADMIN_PASSWORD", "ci-password-long-enough")
+    response = client.get("/api/status")
+    assert response.status_code == 503
