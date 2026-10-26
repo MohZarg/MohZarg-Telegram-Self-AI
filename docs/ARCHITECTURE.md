@@ -17,7 +17,7 @@
 - Retries are bounded by `max_attempts`; retry delay grows exponentially and is capped at five minutes.
 - A handler may run more than once if the process crashes after the external side effect but before the job is marked complete. Handlers should therefore be idempotent.
 - Expired `running` jobs are requeued when attempts remain and marked failed after the attempt limit. This is at-least-once delivery: a crash after an external side effect may cause the handler to run again, so handlers must be idempotent.
-- Distributed leases, job cancellation API, and worker deployment wiring remain pending.
+- A standalone worker entry point handles only `telegram_admin_message` jobs and requires the Bot API mode. Distributed leases and job cancellation API remain pending.
 
 ## Intended module boundaries
 - `app/telegram/`: Bot API and user-authorized MTProto clients, session lifecycle, and rate-aware operations.
