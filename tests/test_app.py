@@ -71,3 +71,42 @@ def test_settings_reject_out_of_range_port(monkeypatch):
     monkeypatch.setenv("APP_PORT", "70000")
     with pytest.raises(ValueError, match="between 1 and 65535"):
         Settings.from_env()
+
+
+def test_production_routes_fail_closed_without_admin_credentials(monkeypatch):
+    monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.delenv("ADMIN_USERNAME", raising=False)
+    monkeypatch.delenv("ADMIN_PASSWORD", raising=False)
+    assert client.get("/api/health").status_code == 200
+    response = client.get("/api/status")
+    assert response.status_code == 503
+    assert "not configured" in response.json()["detail"]
+
+
+def test_production_protects_dashboard_status_and_docs(monkeypatch):
+    import base64
+
+    monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.setenv("ADMIN_USERNAME", "owner")
+    monkeypatch.setenv("ADMIN_PASSWORD", "test-only-password")
+    for path in ("/", "/api/status", "/api/docs", "/openapi.json"):
+        response = client.get(path)
+        assert response.status_code == 401
+        assert response.headers["www-authenticate"].startswith("Basic")
+
+    credential = base64.b64encode(b"owner:test-only-password").decode("ascii")
+    headers = {"Authorization": f"Basic {credential}"}
+    assert client.get("/", headers=headers).status_code == 200
+    assert client.get("/api/status", headers=headers).status_code == 200
+    assert client.get("/api/docs", headers=headers).status_code == 200
+
+
+def test_production_rejects_wrong_admin_credentials(monkeypatch):
+    import base64
+
+    monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.setenv("ADMIN_USERNAME", "owner")
+    monkeypatch.setenv("ADMIN_PASSWORD", "correct-password")
+    credential = base64.b64encode(b"owner:wrong-password").decode("ascii")
+    response = client.get("/api/status", headers={"Authorization": f"Basic {credential}"})
+    assert response.status_code == 401
