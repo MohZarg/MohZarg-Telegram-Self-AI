@@ -34,7 +34,6 @@ def test_bot_mode_requires_token_and_admin_chat(monkeypatch):
     monkeypatch.setenv("TELEGRAM_MODE", "bot")
     monkeypatch.setenv("TELEGRAM_ADMIN_BOT_TOKEN", "test-token")
     monkeypatch.setenv("TELEGRAM_ADMIN_CHAT_ID", "123")
-    monkeypatch.setenv("TELEGRAM_ADMIN_USER_ID", "123")
     with pytest.raises(TelegramConfigurationError, match="TELEGRAM_ADMIN_USER_ID"):
         TelegramSettings.from_env()
 
@@ -77,6 +76,7 @@ def test_bot_mode_does_not_require_mtproto_credentials(monkeypatch):
     monkeypatch.setenv("TELEGRAM_MODE", "bot")
     monkeypatch.setenv("TELEGRAM_ADMIN_BOT_TOKEN", "private-token")
     monkeypatch.setenv("TELEGRAM_ADMIN_CHAT_ID", "123")
+    monkeypatch.setenv("TELEGRAM_ADMIN_USER_ID", "123")
 
     settings = TelegramSettings.from_env()
 
