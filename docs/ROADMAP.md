@@ -35,9 +35,11 @@ A checklist item is complete only when code exists and relevant automated checks
 - [x] Assess zero-cost hosting options against persistent storage and always-on worker requirements; no provider selected.
 - [x] Single-admin authentication and protected operational routes; per-process failed-login throttle baseline added.
 - [ ] RBAC and shared/distributed rate limiting for multi-worker deployments.
-- [ ] Production settings validation and managed secret provisioning.
+- [x] Production Basic-auth rejects missing/weak/malformed credentials and fails closed.
+- [ ] Full production settings validation and managed secret provisioning.
 - [x] Separate web and optional worker process entry point with signal-based graceful shutdown.
-- [ ] Readiness checks and operational alerts.
+- [x] Container healthcheck and CI smoke test for health plus protected status endpoint.
+- [ ] Operational alerts.
 - [x] Persistent Compose data volume and verified SQLite backup/restore CLI with atomic replacement.
 - [ ] Automated backup schedule, restore drill in target deployment, rollback, and multi-instance strategy.
 
@@ -71,7 +73,7 @@ A checklist item is complete only when code exists and relevant automated checks
 - [ ] Official platform APIs only; no auto-like/follow/comment or spam-like broadcasts.
 
 ## Phase 8 — Release readiness
-- [ ] Run full tests and dependency/security audits.
+- [x] CI compiles/tests Python 3.11/3.12, validates Compose, builds/smoke-tests Docker, and runs a dependency audit.
 - [ ] Verify clean local and Docker installation.
 - [ ] Review Git history and ignore rules for secrets.
 - [ ] Document backup/recovery, limitations, deployment profiles, and key rotation.
