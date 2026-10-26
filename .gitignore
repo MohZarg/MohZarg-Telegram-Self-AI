@@ -12,6 +12,10 @@ credentials/
 *.session-journal
 sessions/
 data/
+backups/
+*.sqlite-*
+*.db-*
+
 instance/
 *.sqlite
 *.sqlite3
