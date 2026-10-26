@@ -23,7 +23,7 @@ def make_admin_message_handler(bot: TelegramBotAPI) -> Callable[[dict[str, Any]]
         text = payload.get("text")
         if not isinstance(text, str) or not text.strip() or len(text) > 4096:
             raise ValueError("telegram_admin_message text is invalid")
-        asyncio.run(bot.send_admin_message(text))
+        asyncio.run(bot.send_admin_message(text.strip()))
 
     return send_admin_message
 
