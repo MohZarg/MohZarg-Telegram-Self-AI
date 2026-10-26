@@ -14,7 +14,8 @@ A checklist item is complete only when code exists and relevant automated checks
 - [x] Provider-independent AI interface, disabled fallback, and Ollama adapter.
 - [x] SQLite audit trail with conservative secret redaction.
 - [x] Unit tests for core primitives added; prior PR CI passed before merge.
-- [ ] Structured logging, RBAC, authentication, rate limiting, and protected dashboard operations.
+- [ ] Structured logging and RBAC.
+- [x] Single-admin production authentication, protected dashboard/API docs, and conservative per-process failed-login throttling (multi-worker shared throttling still required).
 
 ## Phase 2 — Telegram integration (Bot API + MTProto)
 - [x] Document adapter responsibilities, secret boundaries, and implementation order.
@@ -31,7 +32,8 @@ A checklist item is complete only when code exists and relevant automated checks
 - [x] Document why public exposure is blocked and define deployment acceptance criteria.
 - [x] Compare initial cloud hosting candidates and document a provider-selection checklist; provider remains unselected.
 - [x] Assess zero-cost hosting options against persistent storage and always-on worker requirements; no provider selected.
-- [ ] Authentication, RBAC, protected operational routes, and rate limiting.
+- [x] Single-admin authentication and protected operational routes; per-process failed-login throttle baseline added.
+- [ ] RBAC and shared/distributed rate limiting for multi-worker deployments.
 - [ ] Production settings validation and managed secret provisioning.
 - [ ] Separate web/worker lifecycle, graceful shutdown, readiness checks, and operational alerts.
 - [ ] Persistent storage, backup/restore, rollback, and multi-instance strategy.
