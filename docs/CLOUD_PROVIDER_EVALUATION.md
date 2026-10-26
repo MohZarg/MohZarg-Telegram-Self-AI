@@ -10,7 +10,7 @@ This document narrows the first hosting decision for GhYiAb Self. It is not a de
 - Current data layer is SQLite; treat it as single-instance only until concurrency, backup/restore, and migration behavior are verified.
 - Telegram integration is incomplete; do not accept real user sessions yet.
 - No domain is available. A domain is not required for a private staging smoke test, but public HTTPS deployment requires a domain or an explicitly chosen platform URL and proper access controls.
-- The dashboard currently lacks authentication/RBAC. Public exposure is blocked independently of provider choice.
+- The dashboard has single-admin HTTP Basic authentication and a per-process failed-login throttle in production mode. RBAC, shared throttling, trusted proxy/TLS setup, and operational hardening remain incomplete; public exposure is blocked independently of provider choice.
 - Prefer an EU region only if that matches the operator's data-residency and latency requirements; confirm applicable legal obligations before selecting a region.
 
 ## Shortlist
@@ -43,11 +43,11 @@ No current price is stated here; prices, quotas, terms, and feature availability
 ## Deployment gates — still mandatory
 
 Provider choice does **not** remove these release blockers:
-- Add and test authentication, authorization/RBAC, rate limiting, and protection for dashboard/API docs.
+- Complete RBAC, shared/distributed rate limiting, trusted proxy/TLS setup, and review the existing production authentication and protected routes.
 - Validate production settings fail-closed.
 - Separate web and worker lifecycle; implement graceful shutdown and readiness checks.
 - Define session/key handling, rotation, backups, restore drills, audit retention and incident response.
-- Run dependency/security checks and clean-install/container verification.
+- Run dependency/security checks and clean-install/container verification; PR CI now audits declared runtime dependencies and smoke-tests the Docker image.
 - Keep the app private until all public-exposure acceptance criteria in [Cloud Deployment Readiness](CLOUD_DEPLOYMENT.md) pass.
 
 ## Operator decision required
