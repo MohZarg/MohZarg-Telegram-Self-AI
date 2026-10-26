@@ -54,6 +54,12 @@ GhYiAb Self is a free, open-source foundation for authorized Telegram account au
 - Telegram configuration validation is a standalone boundary and is not wired into application startup.
 - AI adapter provides local Ollama HTTP support and safe failure results; AI does not directly execute sensitive account actions.
 
+## Administrative access
+- In `APP_ENV=production`, HTTP Basic authentication protects the dashboard, status API, API root, OpenAPI schema, and interactive API docs. `/api/health` remains a minimal liveness probe.
+- Set `ADMIN_USERNAME` and a long, unique `ADMIN_PASSWORD` through the host's secret configuration. If either is missing, protected routes fail closed with HTTP 503.
+- Development mode intentionally keeps local routes accessible for development. Do not use development mode on an internet-facing deployment.
+- This is a single-admin authentication baseline, not multi-user RBAC, session management, CSRF protection, or rate limiting. Use HTTPS before any remote access; do not expose port 8000 directly.
+
 ## Cloud deployment and safety
 The default Compose setup binds to loopback. Do not expose this development foundation publicly before authentication, authorization, worker controls, and production hardening are implemented. See [Cloud Deployment Readiness](docs/CLOUD_DEPLOYMENT.md) for release blockers and the safe deployment checklist. See [Telegram Integration Boundary](docs/TELEGRAM_INTEGRATION.md) for the dual-adapter plan. Operate only accounts and channels you are authorized to manage. Do not spam or bypass Telegram limits. Never send session data or encryption keys to an AI provider.
 
