@@ -17,7 +17,7 @@ def test_worker_handler_sends_only_plain_text_to_configured_admin():
     bot = FakeBot()
     handler = make_admin_message_handler(bot)
     handler({"text": "  hello  "})
-    assert bot.sent == ["  hello  "]
+    assert bot.sent == ["hello"]
 
 
 @pytest.mark.parametrize("payload", [{}, {"text": "hello", "chat_id": 999}, {"text": ""}, {"text": "x" * 4097}, {"text": 12}])
