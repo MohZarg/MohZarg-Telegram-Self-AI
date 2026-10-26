@@ -2,7 +2,7 @@
 
 GhYiAb Self is a free, open-source foundation for authorized Telegram account automation, developed and maintained publicly under the MohZarg brand.
 
-> Development status: core primitives, a bounded scheduler worker, Telegram configuration validation, and a restricted Bot API client are implemented. MTProto is not implemented. Public cloud deployment is blocked until authentication, authorization, and production hardening are implemented.
+> Development status: core primitives, a bounded scheduler worker, Telegram configuration validation, and a restricted Bot API client are implemented. MTProto is not implemented. Public cloud deployment remains blocked pending RBAC, shared throttling, production proxy/CSRF hardening, and deployment validation.
 
 ## Brand and sustainable open source
 - Product: **GhYiAb Self**. Creator and public development brand: **MohZarg**.
@@ -32,7 +32,7 @@ GhYiAb Self is a free, open-source foundation for authorized Telegram account au
 ## Still pending
 - Webhook support, Telegram-aware flood-wait/rate limits, richer command policy, and MTProto integration.
 - MTProto client, login, 2FA, connect/disconnect/revoke, session lifecycle, and device audit.
-- Authentication, RBAC, rate limiting, and protected operational dashboard.
+- RBAC, CSRF/session protections, shared rate limiting for multi-worker setups, and production proxy hardening.
 - Dead-letter review UI, job cancellation API, distributed leases, and full end-to-end operations.
 - AI supervisor, intent detection, action planner, and approval for consequential actions.
 - Telegram event integrations, profile/message automation, and complete Persian/English RTL/LTR UI.
