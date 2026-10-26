@@ -9,7 +9,7 @@ A checklist item is complete only when code exists and relevant automated checks
 
 ## Phase 1 — Core primitives
 - [x] Typed automation rule schema and allowlisted action engine.
-- [x] SQLite one-shot job store with due-job lookup and lifecycle states.
+- [x] SQLite durable job store with atomic claiming, bounded retries, and stale-lease recovery.
 - [x] Fernet-encrypted session-byte vault with restrictive file permissions.
 - [x] Provider-independent AI interface, disabled fallback, and Ollama adapter.
 - [x] SQLite audit trail with conservative secret redaction.
@@ -31,7 +31,8 @@ A checklist item is complete only when code exists and relevant automated checks
 - [ ] Content drafting, review, approval, and compliant publishing adapters.
 
 ## Phase 4 — Automation and operations
-- [ ] Worker loop, job claiming/locking, retries, dead-letter handling, cancellation, and graceful shutdown.
+- [x] Synchronous worker loop, job claiming/locking, bounded retries, and expired-lease recovery.
+- [ ] Worker process packaging, dead-letter review tools, cancellation, and graceful shutdown.
 - [ ] Event bus and triggers for events supported by the selected Telegram API.
 - [ ] Monitoring, redacted logs, audit review, and operational alerts.
 - [ ] File/media tools only where official APIs support the operation.
