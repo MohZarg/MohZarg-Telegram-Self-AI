@@ -79,11 +79,11 @@ class TelegramSettings:
                 user_id = int(raw_user_id)
             except (TypeError, ValueError) as exc:
                 raise TelegramConfigurationError(
-                    "TELEGRAM_ADMIN_USER_ID must be a non-zero integer for the selected mode"
+                    "TELEGRAM_ADMIN_USER_ID must be a positive integer for the selected mode"
                 ) from exc
-            if user_id == 0:
+            if user_id <= 0:
                 raise TelegramConfigurationError(
-                    "TELEGRAM_ADMIN_USER_ID must be a non-zero integer for the selected mode"
+                    "TELEGRAM_ADMIN_USER_ID must be a positive integer for the selected mode"
                 )
 
         return cls(

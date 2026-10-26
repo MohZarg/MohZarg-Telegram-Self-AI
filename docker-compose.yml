@@ -6,6 +6,25 @@ services:
       - "127.0.0.1:8000:8000"
     env_file:
       - .env
+    volumes:
+      - app-data:/app/data
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
+
+  scheduler-worker:
+    build: .
+    container_name: telegram-self-ai-worker
+    command: ["python", "-m", "app.scheduler.runner"]
+    env_file:
+      - .env
+    volumes:
+      - app-data:/app/data
+    profiles: ["worker"]
+    restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  app-data:

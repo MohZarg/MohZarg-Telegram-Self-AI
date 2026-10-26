@@ -12,8 +12,8 @@ class TelegramBotPoller:
     """Allowlisted read-only commands; never executes arbitrary message content."""
 
     def __init__(self, bot: TelegramBotAPI, *, admin_user_id: int, admin_chat_id: int):
-        if admin_user_id == 0 or admin_chat_id == 0:
-            raise ValueError("Admin user and chat IDs must be non-zero")
+        if admin_user_id <= 0 or admin_chat_id == 0:
+            raise ValueError("Admin user ID must be positive and chat ID must be non-zero")
         self.bot = bot
         self.admin_user_id = admin_user_id
         self.admin_chat_id = admin_chat_id

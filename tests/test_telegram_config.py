@@ -83,3 +83,12 @@ def test_bot_mode_does_not_require_mtproto_credentials(monkeypatch):
     assert settings.mode == "bot"
     assert settings.api_id is None
     assert settings.api_hash is None
+
+
+def test_bot_mode_rejects_nonpositive_admin_user_id(monkeypatch):
+    monkeypatch.setenv("TELEGRAM_MODE", "bot")
+    monkeypatch.setenv("TELEGRAM_ADMIN_BOT_TOKEN", "test-token")
+    monkeypatch.setenv("TELEGRAM_ADMIN_CHAT_ID", "123")
+    monkeypatch.setenv("TELEGRAM_ADMIN_USER_ID", "-1")
+    with pytest.raises(TelegramConfigurationError, match="positive integer"):
+        TelegramSettings.from_env()
