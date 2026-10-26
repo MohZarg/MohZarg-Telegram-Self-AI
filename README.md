@@ -2,7 +2,7 @@
 
 GhYiAb Self is a free, open-source foundation for authorized Telegram account automation, developed and maintained publicly under the MohZarg brand.
 
-> Development status: core primitives and a bounded scheduler worker are implemented. The selected target is **Bot API + MTProto**, but neither integration is connected yet. Public cloud deployment is blocked until authentication, authorization, and production hardening are implemented.
+> Development status: core primitives and a bounded scheduler worker are implemented. The target is Bot API + MTProto; configuration validation now exists, but neither client adapter is connected. Public cloud deployment is blocked until authentication, authorization, and production hardening are implemented.
 
 ## Brand and sustainable open source
 - Product: **GhYiAb Self**. Creator and public development brand: **MohZarg**.
@@ -25,11 +25,13 @@ GhYiAb Self is a free, open-source foundation for authorized Telegram account au
 - Fernet authenticated encryption vault for serialized session bytes.
 - SQLite audit trail with conservative secret redaction.
 - Provider-independent AI interface, disabled fallback, and Ollama adapter.
-- Docker foundation, CI for Python 3.11/3.12, and unit tests for implemented primitives.
-- Cloud deployment safety gate and a documented Bot API + MTProto integration boundary.
+- Telegram mode configuration validator for `disabled`, `bot`, `mtproto`, and `both`; missing/invalid selected-mode settings fail closed and secrets are excluded from the settings representation.
+- Cloud deployment safety gate, dual Telegram integration boundary, Docker foundation, CI for Python 3.11/3.12, and unit tests for implemented primitives.
 
 ## Still pending
-- Telegram Bot API admin bot; MTProto login, 2FA, connect/disconnect/revoke, and device audit.
+- Telegram Bot API client, update handling, admin authorization, and operational lifecycle.
+- MTProto login, 2FA, connect/disconnect/revoke, session lifecycle, and device audit.
+- Wiring validated Telegram settings into application startup and protected runtime operations.
 - Worker process packaging, cancellation, operational controls, and end-to-end scheduler operations.
 - Authentication, RBAC, rate limiting, and protected operational dashboard.
 - AI supervisor, intent detection, action planner, and approval for consequential actions.
@@ -48,6 +50,7 @@ GhYiAb Self is a free, open-source foundation for authorized Telegram account au
 - Automation engine evaluates typed rules and delegates to explicitly registered handlers; it does not send Telegram messages itself.
 - Scheduler store atomically claims due jobs; `JobWorker` invokes only explicitly registered handlers and applies bounded retry delays. Handlers must be idempotent. Recovery is at-least-once and may repeat an external side effect after a crash.
 - Session vault encrypts serialized bytes; the key must remain outside the repository. This is not Telegram login or session revocation.
+- Telegram configuration validation is a standalone boundary only; it does not connect clients or start login.
 - AI adapter provides local Ollama HTTP support and safe failure results; AI does not directly execute sensitive account actions.
 
 ## Cloud deployment and safety
