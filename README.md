@@ -20,7 +20,7 @@ GhYiAb Self is a free, open-source foundation for authorized Telegram account au
 - FastAPI dashboard and non-sensitive health/status endpoints.
 - Basic security response headers and environment validation.
 - Declarative automation rules with allowlisted triggers, conditions, and actions; no user-supplied code execution.
-- SQLite job store with timezone-normalized timestamps, atomic due-job claiming, attempt tracking, and retry metadata.
+- SQLite job store with timezone-normalized timestamps, atomic due-job claiming, attempt tracking, bounded retries, and stale worker-lease recovery.
 - Explicit-handler scheduler worker with bounded exponential backoff and sanitized error handling.
 - Fernet authenticated encryption vault for serialized session bytes.
 - SQLite audit trail with conservative secret redaction.
@@ -29,7 +29,7 @@ GhYiAb Self is a free, open-source foundation for authorized Telegram account au
 
 ## Still pending
 - Telegram Bot API admin bot; MTProto login, 2FA, connect/disconnect/revoke, and device audit.
-- Stale-job recovery after process crashes, worker process packaging, cancellation, and end-to-end scheduler operations.
+- Worker process packaging, cancellation, operational controls, and end-to-end scheduler operations.
 - Permission/RBAC layer and authenticated operational dashboard.
 - AI supervisor, intent detection, action planner, and approval for consequential actions.
 - Telegram event integrations, profile/message automation, and complete Persian/English RTL/LTR UI.
@@ -47,7 +47,7 @@ See docs/ROADMAP.md and docs/ARCHITECTURE.md.
 
 ## Module boundaries
 - Automation engine evaluates typed rules and delegates to explicitly registered handlers; it does not send Telegram messages itself.
-- Scheduler store atomically claims due jobs; `JobWorker` invokes only explicitly registered handlers and applies bounded retry delays. Handlers should be idempotent. Stale running-job recovery is not implemented.
+- Scheduler store atomically claims due jobs; `JobWorker` invokes only explicitly registered handlers and applies bounded retry delays. Handlers must be idempotent. The worker requeues expired leases below the attempt limit and marks exhausted jobs failed; recovery is at-least-once and may repeat an external side effect after a crash.
 - Session vault encrypts serialized bytes; the key must remain outside the repository. This is not Telegram login or session revocation.
 - AI adapter provides local Ollama HTTP support and safe failure results; AI does not directly execute sensitive account actions.
 
