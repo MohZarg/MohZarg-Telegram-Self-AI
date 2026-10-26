@@ -35,8 +35,8 @@ A checklist item is complete only when code exists and relevant automated checks
 - [x] Single-admin authentication and protected operational routes; per-process failed-login throttle baseline added.
 - [ ] RBAC and shared/distributed rate limiting for multi-worker deployments.
 - [ ] Production settings validation and managed secret provisioning.
-- [ ] Separate web/worker lifecycle, graceful shutdown, readiness checks, and operational alerts.
-- [ ] Persistent storage, backup/restore, rollback, and multi-instance strategy.
+- [x] Separate web and optional worker process entry point with signal-based graceful shutdown.\n- [ ] Readiness checks and operational alerts.
+- [x] Persistent Compose data volume and verified SQLite backup/restore CLI with atomic replacement.\n- [ ] Automated backup schedule, restore drill in target deployment, rollback, and multi-instance strategy.
 
 ## Phase 4 — AI and content
 - [ ] Configurable provider chain with local-first option and graceful degradation.
@@ -47,7 +47,7 @@ A checklist item is complete only when code exists and relevant automated checks
 
 ## Phase 5 — Automation and operations
 - [x] Synchronous worker loop, job claiming/locking, bounded retries, and expired-lease recovery.
-- [ ] Worker process packaging, dead-letter review tools, cancellation, and graceful shutdown.
+- [x] Worker process packaging, SIGINT/SIGTERM shutdown, and explicit admin-notification handler.\n- [ ] Dead-letter review tools, job cancellation API, and distributed leases.
 - [ ] Event bus and triggers for events supported by the selected Telegram API.
 - [ ] Monitoring, redacted logs, audit review, and operational alerts.
 - [ ] File/media tools only where official APIs support the operation.
