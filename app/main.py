@@ -27,7 +27,7 @@ async def lifespan(application: FastAPI):
     telegram_settings = TelegramSettings.from_env()
     if telegram_settings.mode in {"mtproto", "both"}:
         raise RuntimeError(
-            "TELEGRAM_MODE=mtproto/both is not available until the MTProto adapter is implemented"
+            "MTProto adapter is not implemented; TELEGRAM_MODE=mtproto/both cannot be enabled"
         )
     if telegram_settings.mode == "bot":
         assert telegram_settings.bot_token is not None
