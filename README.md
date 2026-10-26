@@ -1,129 +1,53 @@
 # MohZarg Telegram Self AI
 
-**Free and open-source self-hosted AI assistant and Telegram automation project.**
+Free and open-source self-hosted AI assistance and authorized Telegram automation toolkit.
 
-Telegram Self AI is being built as a self-hosted toolkit combining a web dashboard, Telegram administration bot, authorized Telegram account integration (MTProto), AI assistance, channel content workflows, automation, scheduling, monitoring, and Persian/English support.
-
-> **Development status: Early foundation.** The initial web dashboard and health/status API are implemented. Telegram, MTProto, AI, content engine, scheduler, and automation integrations are planned and are not yet implemented.
+> Development status: core primitives are implemented and entering CI validation. Telegram Bot API, MTProto login/2FA, background workers, and a production-ready authenticated dashboard are not implemented yet.
 
 ## Principles
-
-- Free and open source, with the complete source available publicly.
+- Free and open source under MIT; personal and commercial use permitted.
 - No paid edition, license key, mandatory subscription, paywall, or artificial feature restrictions.
-- Personal and commercial use permitted under the [MIT License](LICENSE).
-- Optional donations only. Donations never unlock features or affect functionality.
-- Self-hosted configuration and user control.
-- Secure handling of Telegram credentials, MTProto sessions, AI keys, and private data.
+- Donations are optional and never unlock features.
+- Never commit credentials, Telegram sessions, AI keys, databases, backups, or private user data.
 
-## Current features
+## Implemented in the current feature branch
+- FastAPI dashboard and non-sensitive health/status endpoints.
+- Basic security response headers and environment validation.
+- Declarative automation rules with allowlisted triggers, conditions, and actions; no user-supplied code execution.
+- SQLite one-shot job store with due-job lookup and lifecycle status.
+- Fernet authenticated encryption vault for serialized session bytes.
+- SQLite audit trail with conservative secret redaction.
+- Provider-independent AI interface, disabled fallback, and Ollama adapter.
+- Docker foundation, CI for Python 3.11/3.12, and tests for the core primitives.
 
-- [x] Minimal web status dashboard
-- [x] Health endpoint at /api/health
-- [x] Non-sensitive feature status at /api/status
-- [x] Basic security response headers
-- [x] Environment settings validation for the application port
-- [x] Docker image runs as a non-root user
-- [x] GitHub Actions CI for Python 3.11 and 3.12
-- [x] Initial automated tests
-- [ ] Authenticated operational dashboard
-- [ ] Telegram admin bot
-- [ ] Authorized Telegram account integration via MTProto
-- [ ] AI assistant with configurable provider
-- [ ] AI-assisted channel content creation and review
-- [ ] Automation engine, scheduler, and job queue
-- [ ] Full FA/EN localization and RTL/LTR support
+## Still pending
+- Telegram Bot API admin bot; MTProto login, 2FA, connect/disconnect/revoke, and device audit.
+- Background scheduler worker, job locking, retries, cancellation, and graceful shutdown.
+- Permission/RBAC layer and authenticated operational dashboard.
+- AI supervisor, intent detection, action planner, and approval for consequential actions.
+- Telegram event integrations, profile/message automation, and complete Persian/English RTL/LTR UI.
+- Security/dependency audit and clean-install verification.
 
-See [docs/ROADMAP.md](docs/ROADMAP.md) and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+See docs/ROADMAP.md and docs/ARCHITECTURE.md.
 
-## Requirements
+## Requirements and local run
+- Python 3.11 or 3.12; pip and a virtual environment.
+- Clone this repository, check out feat/project-foundation, then install with: python -m pip install -e ".[dev]"
+- Start with: uvicorn app.main:app --host 127.0.0.1 --port 8000
+- Dashboard: http://127.0.0.1:8000 ; API docs: http://127.0.0.1:8000/api/docs
+- Tests: python -m compileall -q app tests && python -m pytest
 
-- Python 3.11 or 3.12
-- pip and a virtual environment
-- Docker and Docker Compose are optional
+## Module boundaries
+- Automation engine: evaluates typed rules and delegates to explicitly registered handlers; it does not send Telegram messages itself.
+- Scheduler store: persists jobs but does not run a worker or execute due jobs yet.
+- Session vault: encrypts serialized bytes; the key must remain outside the repository. This is not Telegram login or session revocation.
+- AI adapter: Ollama local HTTP support and safe failure results; AI does not directly execute sensitive account actions.
 
-## Run locally
+## Deployment and safety
+The default Compose setup binds to loopback. Do not expose this development foundation publicly before authentication, authorization, worker controls, and production hardening are implemented. Operate only accounts and channels you are authorized to manage. Do not spam or bypass Telegram limits. Never send session data or encryption keys to an AI provider.
 
-Clone the repository and switch to the development branch while the initial implementation is being reviewed:
+## Security and license
+Review SECURITY.md and CONTRIBUTING.md. MIT License. Donations may optionally support development but never unlock functionality.
 
-```bash
-git clone https://github.com/MohZarg/MohZarg-Telegram-Self-AI.git
-cd MohZarg-Telegram-Self-AI
-git checkout feat/project-foundation
-python -m venv .venv
-```
-
-Activate the virtual environment:
-
-- Linux/macOS: `source .venv/bin/activate`
-- Windows PowerShell: `.venv\Scripts\Activate.ps1`
-
-Install the app and development dependencies, then start the server:
-
-```bash
-python -m pip install -e ".[dev]"
-uvicorn app.main:app --host 127.0.0.1 --port 8000
-```
-
-Open http://127.0.0.1:8000 for the dashboard and http://127.0.0.1:8000/api/docs for the API documentation.
-
-Health check:
-
-```bash
-python -c "from urllib.request import urlopen; print(urlopen('http://127.0.0.1:8000/api/health').read().decode())"
-```
-
-## Run tests
-
-```bash
-python -m compileall -q app tests
-python -m pytest
-```
-
-GitHub Actions runs these checks on pushes to the main and feature branches and on pull requests.
-
-## Docker
-
-Create a local environment file first:
-
-```bash
-cp .env.example .env
-```
-
-On Windows PowerShell, use `Copy-Item .env.example .env`. Then run:
-
-```bash
-docker compose up --build
-```
-
-The default Compose configuration binds the service to 127.0.0.1 on the host. Do not expose this development foundation publicly: authenticated access controls and production hardening are still required before adding operational features.
-
-## Configuration
-
-Copy `.env.example` to `.env` for local use. Populate only the values needed by the features you have configured. Never commit `.env`, API hashes, bot tokens, AI keys, Telegram sessions, databases, backups, or logs containing private data.
-
-## Telegram account and safety
-
-Use only accounts and channels you own or are authorized to operate. Do not use this project for unsolicited bulk messaging, spam, unauthorized access, or bypassing Telegram restrictions. MTProto session files are credentials: keep them private, restrict filesystem access, and never upload them to GitHub.
-
-## Optional support
-
-### ❤️ Support Development
-
-This project is intended to remain free and open source. If it helps you, you may optionally support development.
-
-**Donate:** Donation link to be configured.
-
-Donations are optional and do not unlock features. No donation URL has been configured yet.
-
-## Security and contributions
-
-Review [SECURITY.md](SECURITY.md) before reporting security issues, and [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. Do not post credentials, session files, or exploitable vulnerability details in public issues.
-
-## License
-
-Released under the [MIT License](LICENSE), allowing personal and commercial use, modification, and redistribution subject to its terms.
-
----
-
-**Maintainer:** [MohZarg](https://github.com/MohZarg)  
-**Repository:** [MohZarg-Telegram-Self-AI](https://github.com/MohZarg/MohZarg-Telegram-Self-AI)
+Maintainer: MohZarg — https://github.com/MohZarg
+Repository: https://github.com/MohZarg/MohZarg-Telegram-Self-AI
