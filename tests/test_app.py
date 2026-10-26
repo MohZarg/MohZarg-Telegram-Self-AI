@@ -110,3 +110,26 @@ def test_production_rejects_wrong_admin_credentials(monkeypatch):
     credential = base64.b64encode(b"owner:wrong-password").decode("ascii")
     response = client.get("/api/status", headers={"Authorization": f"Basic {credential}"})
     assert response.status_code == 401
+
+
+def test_production_throttles_repeated_failed_authentication(monkeypatch):
+    import base64
+    import app.main as main_module
+
+    main_module._auth_failures.clear()
+    monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.setenv("ADMIN_USERNAME", "owner")
+    monkeypatch.setenv("ADMIN_PASSWORD", "correct-password")
+    wrong = base64.b64encode(b"owner:wrong-password").decode("ascii")
+    headers = {"Authorization": f"Basic {wrong}"}
+
+    responses = [client.get("/api/status", headers=headers) for _ in range(5)]
+    assert [response.status_code for response in responses[:4]] == [401] * 4
+    assert responses[4].status_code == 429
+    assert int(responses[4].headers["retry-after"]) > 0
+    # Correct credentials from the same client are also blocked during cooldown.
+    correct = base64.b64encode(b"owner:correct-password").decode("ascii")
+    blocked = client.get("/api/status", headers={"Authorization": f"Basic {correct}"})
+    assert blocked.status_code == 429
+    assert blocked.headers["retry-after"]
+    main_module._auth_failures.clear()
