@@ -1,0 +1,11 @@
+services:
+  telegram-self-ai:
+    build: .
+    container_name: telegram-self-ai
+    ports:
+      - "127.0.0.1:8000:8000"
+    env_file:
+      - .env
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
