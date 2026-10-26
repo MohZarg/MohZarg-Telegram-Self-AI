@@ -59,3 +59,43 @@ def test_timestamp_offsets_are_normalized_to_utc(tmp_path):
     store = JobStore(tmp_path / "jobs.sqlite3")
     store.enqueue("job-1", "2026-10-26T14:00:00+02:00", "notify", {})
     assert store.due("2026-10-26T12:00:00Z")[0]["id"] == "job-1"
+
+
+
+def test_recover_stale_requeues_jobs_and_redacts_error(tmp_path):
+    store = JobStore(tmp_path / "jobs.sqlite3")
+    store.enqueue("stale-job", "2026-10-26T12:00:00Z", "notify", {"text": "safe"})
+    store.claim_due("2026-10-26T12:00:00Z")
+
+    result = store.recover_stale(
+        "2026-10-26T12:06:00Z", stale_after_seconds=300, max_attempts=3
+    )
+
+    assert result == {"requeued": 1, "failed": 0}
+    due = store.due("2026-10-26T12:06:00Z")
+    assert len(due) == 1
+    assert due[0]["status"] == "pending"
+    assert due[0]["last_error"] == "WorkerLeaseExpired"
+    assert due[0]["locked_at"] is None
+
+
+def test_recover_stale_fails_jobs_at_attempt_limit(tmp_path):
+    store = JobStore(tmp_path / "jobs.sqlite3")
+    store.enqueue("stale-job", "2026-10-26T12:00:00Z", "notify", {})
+    store.claim_due("2026-10-26T12:00:00Z")
+    store.recover_stale(
+        "2026-10-26T12:06:00Z", stale_after_seconds=300, max_attempts=1
+    )
+
+    assert store.due("2026-10-26T12:06:00Z") == []
+    assert store.recover_stale(
+        "2026-10-26T12:07:00Z", stale_after_seconds=300, max_attempts=1
+    ) == {"requeued": 0, "failed": 0}
+
+
+def test_recover_stale_validates_bounds(tmp_path):
+    store = JobStore(tmp_path / "jobs.sqlite3")
+    with pytest.raises(ValueError, match="stale_after_seconds"):
+        store.recover_stale("2026-10-26T12:00:00Z", stale_after_seconds=0)
+    with pytest.raises(ValueError, match="max_attempts"):
+        store.recover_stale("2026-10-26T12:00:00Z", max_attempts=0)
