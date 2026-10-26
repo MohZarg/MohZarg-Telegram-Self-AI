@@ -1,4 +1,6 @@
 """Initial executable web/API foundation for Telegram Self AI."""
+import asyncio
+from contextlib import asynccontextmanager
 from base64 import b64decode
 from binascii import Error as Base64Error
 from hmac import compare_digest
@@ -13,6 +15,50 @@ from fastapi.responses import HTMLResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import Settings
+from app.telegram.bot_api import TelegramBotAPI
+from app.telegram.config import TelegramSettings
+from app.telegram.polling import TelegramBotPoller
+
+@asynccontextmanager
+async def lifespan(application: FastAPI):
+    """Validate integration mode and own the Bot API poller's process lifecycle."""
+    bot_task: asyncio.Task | None = None
+    application.state.telegram_bot = None
+    telegram_settings = TelegramSettings.from_env()
+    if telegram_settings.mode in {"mtproto", "both"}:
+        raise RuntimeError(
+            "TELEGRAM_MODE=mtproto/both is not available until the MTProto adapter is implemented"
+        )
+    if telegram_settings.mode == "bot":
+        assert telegram_settings.bot_token is not None
+        assert telegram_settings.admin_chat_id is not None
+        assert telegram_settings.admin_user_id is not None
+        bot = TelegramBotAPI(
+            token=telegram_settings.bot_token,
+            admin_chat_id=telegram_settings.admin_chat_id,
+            timeout_seconds=30,
+        )
+        identity = await bot.get_me()
+        if identity.get("is_bot") is not True:
+            raise RuntimeError("Configured Telegram identity is not a bot")
+        application.state.telegram_bot = bot
+        poller = TelegramBotPoller(
+            bot,
+            admin_user_id=telegram_settings.admin_user_id,
+            admin_chat_id=telegram_settings.admin_chat_id,
+        )
+        bot_task = asyncio.create_task(poller.run(), name="telegram-bot-poller")
+    try:
+        yield
+    finally:
+        if bot_task is not None:
+            bot_task.cancel()
+            try:
+                await bot_task
+            except asyncio.CancelledError:
+                pass
+        application.state.telegram_bot = None
+
 
 app = FastAPI(
     title="GhYiAb Self · by MohZarg",
@@ -20,6 +66,7 @@ app = FastAPI(
     version="0.1.0",
     docs_url="/api/docs",
     redoc_url=None,
+    lifespan=lifespan,
 )
 
 
