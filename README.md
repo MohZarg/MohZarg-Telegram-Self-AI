@@ -1,1 +1,1 @@
-# MohZarg-Telegram-Self-AI
+# MohZarg-Telegram-Self-BoT
