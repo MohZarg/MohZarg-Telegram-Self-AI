@@ -37,7 +37,7 @@ GhYiAb Self is a free, open-source foundation for authorized Telegram account au
 - AI supervisor, intent detection, action planner, and approval for consequential actions.
 - Telegram event integrations, profile/message automation, and complete Persian/English RTL/LTR UI.
 - GhYiAb V2 source audit and integration; no separate V2 repository or Master Spec/STATUS/gap report has been identified.
-- Security/dependency audit and clean-install verification.
+- Local-host clean-install verification and full Git-history secret review before production release.
 
 ## Requirements and local run
 - Python 3.11 or 3.12; pip and a virtual environment.

@@ -18,9 +18,9 @@
 
 - RBAC, CSRF/session protections where applicable, shared rate limiting for multi-worker deployments, and trusted proxy configuration.
 - Complete production configuration validation and secure secret provisioning through host-managed secrets.
-- Production database/migration and backup/recovery plan.
+- Automated backup schedule, target-host restore drill, and production database/migration strategy.
 - Readiness checks, operational alerting, and deployment-level graceful-shutdown verification (worker entry point exists).
-- Dedicated Telegram end-to-end test account and review of dependency-audit findings.
+- Dedicated Telegram end-to-end test account; rerun dependency audit before each release.
 - HTTPS/reverse-proxy configuration and deployment-specific network policy.
 - Operational alerting and documented incident response.
 
