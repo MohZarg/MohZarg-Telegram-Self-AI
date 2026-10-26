@@ -11,8 +11,11 @@ import tempfile
 def _check_integrity(path: Path) -> None:
     if not path.is_file():
         raise FileNotFoundError(f"SQLite database not found: {path}")
-    with sqlite3.connect(str(path)) as db:
+    db = sqlite3.connect(str(path))
+    try:
         result = db.execute("PRAGMA integrity_check").fetchone()
+    finally:
+        db.close()
     if not result or result[0] != "ok":
         raise ValueError(f"SQLite integrity check failed for: {path}")
 
@@ -31,11 +34,17 @@ def _copy_database(source: str | Path, destination: str | Path, *, overwrite: bo
     os.close(fd)
     temporary = Path(temp_name)
     try:
-        with sqlite3.connect(str(src)) as source_db, sqlite3.connect(str(temporary)) as target_db:
+        source_db = sqlite3.connect(str(src))
+        target_db = sqlite3.connect(str(temporary))
+        try:
             source_db.backup(target_db)
             result = target_db.execute("PRAGMA integrity_check").fetchone()
             if not result or result[0] != "ok":
                 raise ValueError("SQLite integrity check failed after copy")
+            target_db.commit()
+        finally:
+            target_db.close()
+            source_db.close()
         os.chmod(temporary, 0o600)
         os.replace(temporary, dst)
         return dst
