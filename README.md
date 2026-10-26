@@ -1,8 +1,14 @@
-# MohZarg Telegram Self AI
+# GhYiAb Self — by MohZarg
 
-Free and open-source self-hosted AI assistance and authorized Telegram automation toolkit.
+GhYiAb Self is a free, open-source foundation for authorized Telegram account automation, developed and maintained publicly under the MohZarg brand.
 
 > Development status: core primitives and a bounded scheduler worker are implemented. Telegram Bot API, MTProto login/2FA, a production-ready authenticated dashboard, and the GhYiAb V2 integration are not implemented yet.
+
+## Brand and sustainable open source
+- Product: **GhYiAb Self**. Creator and public development brand: **MohZarg**.
+- The dashboard includes a clearly disclosed, optional MohZarg creator promotion linking to https://MohZarg.ir. It is not targeted advertising, does not track users, and never unlocks or restricts features.
+- Optional donations and creator promotions support visibility and development; neither is required to use the software.
+- The product remains free and open source under MIT, with no license key, mandatory subscription, or paywall.
 
 ## Principles
 - Free and open source under MIT; personal and commercial use permitted.
@@ -51,5 +57,5 @@ The default Compose setup binds to loopback. Do not expose this development foun
 ## Security and license
 Review SECURITY.md and CONTRIBUTING.md. MIT License. Donations may optionally support development but never unlock functionality.
 
-Maintainer: MohZarg — https://github.com/MohZarg
+Product: GhYiAb Self · Creator/Maintainer: MohZarg — https://MohZarg.ir · https://github.com/MohZarg
 Repository: https://github.com/MohZarg/MohZarg-Telegram-Self-AI
