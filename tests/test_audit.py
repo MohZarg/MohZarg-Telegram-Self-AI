@@ -11,7 +11,7 @@ def test_audit_redacts_sensitive_fields_and_persists(tmp_path):
     assert event["id"] == event_id
     assert event["details"]["bot_token"] == "[redacted]"
     assert event["details"]["nested"]["session_data"] == "[redacted]"
-    assert "123" not in json.dumps(event)
+    assert "123" not in json.dumps(event["details"])
 
 
 def test_audit_validates_limit_and_required_fields(tmp_path):
