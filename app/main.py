@@ -45,7 +45,7 @@ def donation_url_is_safe(value: str) -> bool:
 @app.get("/api/health", tags=["system"])
 def health():
     """Liveness check; deliberately does not expose configuration or secrets."""
-    return {"status": "ok", "service": "telegram-self-ai", "version": app.version}
+    return {"status": "ok", "service": "ghyiab-self", "version": app.version}
 
 
 @app.get("/api/status", tags=["system"])
@@ -68,10 +68,10 @@ def status():
             "mtproto_account": False,
             "ai_assistant_workflow": False,
             "content_engine": False,
-            "automation_worker": False,
-            "scheduler_worker": False,
+            "automation_worker": True,
+            "scheduler_worker": True,
             "monitoring": True,
-            "localization": ["en", "fa"],
+            "localization": ["en"],
         },
         "donate_configured": donation_url_is_safe(settings.donation_url),
     }
