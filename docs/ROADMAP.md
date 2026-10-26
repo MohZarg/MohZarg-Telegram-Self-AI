@@ -13,12 +13,13 @@ A checklist item is complete only when code exists and relevant automated checks
 - [x] Fernet-encrypted session-byte vault with restrictive file permissions.
 - [x] Provider-independent AI interface, disabled fallback, and Ollama adapter.
 - [x] SQLite audit trail with conservative secret redaction.
-- [x] Unit tests for core primitives added; latest PR CI passed before merge.
+- [x] Unit tests for core primitives added; prior PR CI passed before merge.
 - [ ] Structured logging, RBAC, authentication, rate limiting, and protected dashboard operations.
 
 ## Phase 2 — Telegram integration (Bot API + MTProto)
 - [x] Document adapter responsibilities, secret boundaries, and implementation order.
-- [ ] Add typed configuration and fail-closed validation for selected Telegram modes.
+- [x] Add typed Telegram mode configuration validation for disabled/bot/mtproto/both, including fail-closed validation and tests.
+- [ ] Wire validated settings into app lifecycle only when the selected adapter is implemented.
 - [ ] Add Bot API adapter with admin identity allowlist and fake-client tests.
 - [ ] Add user-authorized MTProto adapter with login/2FA state-machine tests.
 - [ ] Add session connect/disconnect/revoke/status and device audit where supported.
