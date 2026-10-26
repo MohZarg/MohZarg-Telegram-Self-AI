@@ -35,7 +35,10 @@ class TelegramBotPoller:
             return False
         if sender.get("id") != self.admin_user_id or chat.get("id") != self.admin_chat_id:
             return False
-        command = text.strip().split(maxsplit=1)[0].split("@", 1)[0].lower()
+        stripped = text.strip()
+        if not stripped:
+            return False
+        command = stripped.split(maxsplit=1)[0].split("@", 1)[0].lower()
         if command in {"/start", "/help"}:
             await self.bot.send_admin_message("GhYiAb Self admin bot\\nAllowed commands: /help, /status")
             return True
