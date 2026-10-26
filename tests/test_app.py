@@ -30,6 +30,9 @@ def test_status_marks_unimplemented_features(monkeypatch):
     assert data["features"]["web_dashboard"] is True
     assert data["features"]["telegram_bot"] is False
     assert data["features"]["mtproto_account"] is False
+    assert data["features"]["scheduler_worker"] is True
+    assert data["features"]["automation_worker"] is True
+    assert data["features"]["localization"] == ["en"]
     assert data["donate_configured"] is False
 
 
