@@ -36,6 +36,8 @@ def test_bot_mode_starts_and_stops_poller(monkeypatch):
 
 def test_unimplemented_mtproto_mode_fails_closed(monkeypatch):
     monkeypatch.setenv("TELEGRAM_MODE", "mtproto")
+    monkeypatch.setenv("TELEGRAM_API_ID", "12345")
+    monkeypatch.setenv("TELEGRAM_API_HASH", "test-hash")
 
     async def exercise():
         with pytest.raises(RuntimeError, match="MTProto adapter is not implemented"):
