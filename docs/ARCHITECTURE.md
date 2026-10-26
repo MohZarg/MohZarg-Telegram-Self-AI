@@ -5,7 +5,7 @@
 - Typed declarative automation rules use allowlisted triggers, conditions, and actions. Handlers are injected explicitly; arbitrary user code is never evaluated.
 - SQLite job storage normalizes timezone-aware timestamps to UTC and supports additive migration of attempt, lock, and last-error metadata.
 - `JobStore.claim_due` uses a write transaction to claim pending jobs atomically, reducing duplicate execution across competing workers.
-- `JobWorker` calls only explicitly registered handlers, tracks completed/retried/failed outcomes, uses bounded exponential retry delays, and avoids persisting exception messages.
+- `JobWorker` calls only explicitly registered handlers, tracks completed/retried/failed outcomes, uses bounded exponential retry delays, recovers expired worker leases, and avoids persisting exception messages.
 - Fernet session vault encrypts serialized session bytes at rest. The key must be managed outside Git. Telegram login, 2FA, session revocation, and MTProto are not implemented.
 - SQLite audit trail records actor/action/outcome and redacts fields with sensitive names before persistence.
 - AI provider interface includes a disabled provider and an Ollama adapter with bounded request timeout and safe failure results.
@@ -16,7 +16,8 @@
 - Handler exceptions are reduced to the exception class name for persisted failure metadata.
 - Retries are bounded by `max_attempts`; retry delay grows exponentially and is capped at five minutes.
 - A handler may run more than once if the process crashes after the external side effect but before the job is marked complete. Handlers should therefore be idempotent.
-- Automatic recovery of stale `running` jobs, distributed leases, job cancellation API, and worker deployment wiring remain pending.
+- Expired `running` jobs are requeued when attempts remain and marked failed after the attempt limit. This is at-least-once delivery: a crash after an external side effect may cause the handler to run again, so handlers must be idempotent.
+- Distributed leases, job cancellation API, and worker deployment wiring remain pending.
 
 ## Intended module boundaries
 - `app/telegram/`: Bot API and user-authorized MTProto clients, session lifecycle, and rate-aware operations.
@@ -35,4 +36,4 @@
 - Donations are optional and never gate functionality.
 
 ## Not yet implemented
-Telegram Bot API/MTProto connection, login/2FA, stale-job recovery, RBAC, authenticated operations UI, full FA/EN localization, full event monitoring, GhYiAb V2 integration, and end-to-end integration tests remain pending.
+Telegram Bot API/MTProto connection, login/2FA, RBAC, authenticated operations UI, full FA/EN localization, full event monitoring, GhYiAb V2 integration, and end-to-end integration tests remain pending.
