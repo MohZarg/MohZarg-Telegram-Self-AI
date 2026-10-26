@@ -10,6 +10,16 @@ permissions:
   contents: read
 
 jobs:
+  container-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validate Compose configuration
+        run: cp .env.example .env && docker compose config --quiet
+      - name: Build container image
+        run: docker build --tag ghyiab-self:ci .
+
   test:
     runs-on: ubuntu-latest
     strategy:
