@@ -13,8 +13,6 @@ class FakeBot:
         return {"message_id": len(self.sent)}
 
 
- def_update = None
-
 def update(update_id=1, user_id=456, chat_id=-100123, text="/status"):
     return {
         "update_id": update_id,
