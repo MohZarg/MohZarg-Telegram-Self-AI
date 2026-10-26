@@ -2,7 +2,7 @@
 
 GhYiAb Self is a free, open-source foundation for authorized Telegram account automation, developed and maintained publicly under the MohZarg brand.
 
-> Development status: core primitives and a bounded scheduler worker are implemented. The target is Bot API + MTProto; configuration validation now exists, but neither client adapter is connected. Public cloud deployment is blocked until authentication, authorization, and production hardening are implemented.
+> Development status: core primitives, a bounded scheduler worker, Telegram configuration validation, and a restricted Bot API client are implemented. MTProto is not implemented. Public cloud deployment is blocked until authentication, authorization, and production hardening are implemented.
 
 ## Brand and sustainable open source
 - Product: **GhYiAb Self**. Creator and public development brand: **MohZarg**.
@@ -26,17 +26,17 @@ GhYiAb Self is a free, open-source foundation for authorized Telegram account au
 - SQLite audit trail with conservative secret redaction.
 - Provider-independent AI interface, disabled fallback, and Ollama adapter.
 - Telegram mode configuration validator for `disabled`, `bot`, `mtproto`, and `both`; missing/invalid selected-mode settings fail closed and secrets are excluded from the settings representation.
+- Restricted async Telegram Bot API adapter with `getMe`, plain-text messaging only to the configured admin chat, injectable fake transport for tests, and sanitized error messages.
 - Cloud deployment safety gate, dual Telegram integration boundary, Docker foundation, CI for Python 3.11/3.12, and unit tests for implemented primitives.
 
 ## Still pending
-- Telegram Bot API client, update handling, admin authorization, and operational lifecycle.
-- MTProto login, 2FA, connect/disconnect/revoke, session lifecycle, and device audit.
-- Wiring validated Telegram settings into application startup and protected runtime operations.
-- Worker process packaging, cancellation, operational controls, and end-to-end scheduler operations.
+- Bot API update polling/webhook, admin identity verification beyond the configured destination, operational lifecycle, rate limits, and application startup wiring.
+- MTProto client, login, 2FA, connect/disconnect/revoke, session lifecycle, and device audit.
 - Authentication, RBAC, rate limiting, and protected operational dashboard.
+- Worker process packaging, cancellation, operational controls, and end-to-end scheduler operations.
 - AI supervisor, intent detection, action planner, and approval for consequential actions.
 - Telegram event integrations, profile/message automation, and complete Persian/English RTL/LTR UI.
-- GhYiAb V2 source audit and integration; its repository, Master Spec, STATUS, and implementation-gap report have not been identified or provided.
+- GhYiAb V2 source audit and integration; no separate V2 repository or Master Spec/STATUS/gap report has been identified.
 - Security/dependency audit and clean-install verification.
 
 ## Requirements and local run
@@ -50,7 +50,8 @@ GhYiAb Self is a free, open-source foundation for authorized Telegram account au
 - Automation engine evaluates typed rules and delegates to explicitly registered handlers; it does not send Telegram messages itself.
 - Scheduler store atomically claims due jobs; `JobWorker` invokes only explicitly registered handlers and applies bounded retry delays. Handlers must be idempotent. Recovery is at-least-once and may repeat an external side effect after a crash.
 - Session vault encrypts serialized bytes; the key must remain outside the repository. This is not Telegram login or session revocation.
-- Telegram configuration validation is a standalone boundary only; it does not connect clients or start login.
+- Bot API adapter only exposes identity lookup and sends plain text to one configured admin chat; it does not poll updates or authorize arbitrary chat targets.
+- Telegram configuration validation is a standalone boundary and is not wired into application startup.
 - AI adapter provides local Ollama HTTP support and safe failure results; AI does not directly execute sensitive account actions.
 
 ## Cloud deployment and safety

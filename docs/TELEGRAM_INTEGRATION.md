@@ -6,7 +6,7 @@ The planned product supports both:
 - **Bot API** for an administrative bot and bot-authorized workflows.
 - **MTProto** for a user-authorized Telegram account session, including explicit login and 2FA handling.
 
-This is an architecture target, not an implemented or connected integration. The standalone `app.telegram.config` module validates the selected mode and required environment values, but it does not start clients or perform Telegram requests.
+The initial Bot API adapter is implemented as a restricted client with `getMe` and plain-text send to a single configured admin chat. It does not poll updates, register webhooks, start at application boot, or provide a command/authorization system. The standalone `app.telegram.config` module validates mode and required environment values, but configuration is not wired into application startup. MTProto is not implemented.
 
 ## Separation of responsibilities
 
@@ -15,6 +15,7 @@ This is an architecture target, not an implemented or connected integration. The
 - Restricts administrative commands to configured, verified Telegram user/chat IDs.
 - Uses explicit command allowlists and rate limits.
 - Never treats a bot token as an MTProto user session.
+- Current client only provides `get_me()` and `send_admin_message(text)`; the latter has no caller-supplied chat ID and always targets the configured admin chat.
 
 ### MTProto adapter
 - Owns API ID/hash configuration, user login, verification code and 2FA flow, session persistence, disconnect/revoke operations, and authorized device status where supported.
@@ -42,13 +43,14 @@ Do not paste these values into issues, pull requests, chat messages, or source f
 ## Required implementation sequence
 
 1. [x] Add typed configuration and fail-closed validation for each selected mode.
-2. [ ] Add a Bot API client behind an adapter interface, plus fake-client tests.
-3. [ ] Add an MTProto client behind a separate adapter interface, plus login/2FA state-machine tests.
-4. [ ] Add protected admin identity verification and explicit connect/disconnect/revoke controls.
-5. [ ] Add secret/session encryption, rotation and deletion behavior, and redacted audit events.
-6. [ ] Add Telegram-aware flood-wait handling, rate limits, cancellation, retries, and idempotency safeguards.
-7. [ ] Add integration tests using a dedicated bot and test account; do not use production credentials in CI.
-8. [ ] Connect both adapters to the scheduler only after authorization and policy gates are in place.
+2. [x] Add a restricted Bot API client and fake-transport tests.
+3. [ ] Add Bot API update polling/webhook, explicit admin identity verification, command allowlist, and lifecycle management.
+4. [ ] Add an MTProto client behind a separate adapter interface, plus login/2FA state-machine tests.
+5. [ ] Add explicit connect/disconnect/revoke controls and device audit where supported.
+6. [ ] Add secret/session encryption, rotation and deletion behavior, and redacted audit events.
+7. [ ] Add Telegram-aware flood-wait handling, rate limits, cancellation, retries, and idempotency safeguards.
+8. [ ] Add integration tests using a dedicated bot and test account; do not use production credentials in CI.
+9. [ ] Connect both adapters to the scheduler only after authorization and policy gates are in place.
 
 ## Explicitly out of scope
 
@@ -58,4 +60,4 @@ Do not paste these values into issues, pull requests, chat messages, or source f
 
 ## Current blockers
 
-The actual GhYiAb V2 repository, Master Spec, STATUS, and implementation-gap report have not been identified or provided. Therefore, no internal endpoint, database schema, bot contract, account model, wallet/order logic, or existing adapter can safely be assumed or integrated yet.
+The actual GhYiAb V2 repository, Master Spec, STATUS, and implementation-gap report have not been identified or provided. The URL currently supplied points to this Self repository, not a separately identified V2 codebase. Therefore, no internal endpoint, database schema, bot contract, account model, wallet/order logic, or existing adapter can safely be assumed or integrated yet.
