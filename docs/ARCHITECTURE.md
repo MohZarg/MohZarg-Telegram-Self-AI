@@ -1,35 +1,29 @@
 # Architecture — Incremental Implementation
 
-## Current executable slice
-
-- **FastAPI** serves a local status dashboard and health/status endpoints.
-- **Settings** validates basic environment configuration without returning credentials.
-- **Automation engine** evaluates typed, declarative rules using an allowlisted trigger/condition/action model. It never executes user-supplied code and delegates actions to explicitly registered handlers.
-- **SQLite job store** persists one-shot scheduled jobs and supports due-job lookup and lifecycle status updates. A background worker, retries, and distributed locking are not implemented yet.
-- **Session vault** encrypts/decrypts serialized session bytes using Fernet authenticated encryption. The key must be supplied out of band; Telegram login, session revocation, and MTProto integration are not implemented yet.
-- **AI provider adapter** defines a provider-independent interface, a disabled fallback, and an Ollama HTTP adapter with bounded timeout and response handling. No AI operation is exposed as an autonomous account action.
-- **CI and tests** cover the app foundation plus automation, scheduler, session vault, and provider fallback.
+## Implemented primitives
+- FastAPI serves a local status dashboard and non-sensitive health/status endpoints.
+- Typed declarative automation rules use allowlisted triggers, conditions, and actions. Handlers are injected explicitly; arbitrary user code is never evaluated.
+- SQLite job store persists one-shot jobs and supports due lookup and lifecycle status changes. A background worker, retries, and job claiming are not implemented.
+- Fernet session vault encrypts serialized session bytes at rest. The key must be managed outside Git. Telegram login, 2FA, session revocation, and MTProto are not implemented.
+- SQLite audit trail records actor/action/outcome and redacts fields with sensitive names before persistence.
+- AI provider interface includes a disabled provider and an Ollama adapter with bounded request timeout and safe failure results.
+- CI covers Python 3.11 and 3.12; tests exercise the web foundation and the primitives above.
 
 ## Intended module boundaries
-
-- `app/telegram/`: Bot API and user-authorized MTProto clients; session lifecycle and rate-aware operations.
-- `app/ai/`: provider adapters, model configuration, prompt handling, and redaction.
-- `app/content/`: draft generation, review, and explicit publishing confirmation.
-- `app/automation/`: validated rules, permission gates, execution records, cancellation, and audit events.
-- `app/scheduler/`: durable jobs, retry policy, worker loop, and safe shutdown.
-- `app/security/`: secret redaction, encryption, authorization, and session lifecycle safeguards.
-- `app/monitoring/`: health, metrics, and redacted diagnostics.
-- `app/dashboard/`: authenticated configuration and operation views.
-- Future platform integrations: commerce, support, advertising, and optional n8n bridge should use the same policy-controlled service layer rather than duplicate business logic.
+- app/telegram/: Bot API and user-authorized MTProto clients, session lifecycle, and rate-aware operations.
+- app/ai/: provider adapters, model configuration, prompt handling, and redaction.
+- app/content/: draft generation, review, and explicit publishing confirmation.
+- app/automation/: validated rules, permission gates, execution records, cancellation, and audit events.
+- app/scheduler/: durable jobs, retry policy, worker loop, and safe shutdown.
+- app/security/: encryption, authorization, secret redaction, and session lifecycle safeguards.
+- Future GhYiAb integrations for commerce, support, advertising, n8n, wallet, and 3x-ui must only be designed after the actual GhYiAb repository and specs are available; do not invent internal contracts.
 
 ## Security invariants
+- Never commit or return session data, API hashes, bot tokens, AI keys, databases, or private user data.
+- AI may propose actions but must not access the database directly or bypass a policy/permission layer.
+- Operational dashboard controls require authentication and authorization before public deployment.
+- Respect Telegram limits and user authorization; no unsolicited bulk messaging or evasion behavior.
+- Donations are optional and never gate functionality.
 
-- No session data, API hashes, bot tokens, AI keys, or private user data in Git, frontend bundles, logs, or API responses.
-- AI may propose intents/actions, but a policy and permission layer must validate them before execution.
-- Operational dashboard controls must be authenticated and authorized before public deployment.
-- Actions must respect Telegram limits and user authorization; no unsolicited bulk messaging or evasion behavior.
-- Donation support is optional and never gates functionality.
-
-## Honest implementation boundary
-
-This branch contains infrastructure primitives only. It does **not** yet connect to Telegram Bot API or MTProto, run a scheduler worker, provide account login/2FA, expose a production admin dashboard, implement RBAC/audit persistence, or complete FA/EN localization. Those must remain marked as pending until implemented and tested.
+## Not yet implemented
+Telegram Bot API/MTProto connection, login/2FA, background job worker, RBAC, authenticated operations UI, full FA/EN localization, full event monitoring, and end-to-end integration tests remain pending.
