@@ -131,6 +131,22 @@ def _record_auth_failure(client_key: str, now: float) -> float:
         return blocked_until
 
 
+def _admin_credentials_are_safe(username: str, password: str) -> bool:
+    """Reject weak or malformed production Basic-auth credentials."""
+    def has_control(value: str) -> bool:
+        return any(ord(char) < 32 or ord(char) == 127 for char in value)
+
+    return bool(
+        username
+        and len(username) <= 128
+        and ":" not in username
+        and not has_control(username)
+        and len(password) >= 16
+        and len(password) <= 1024
+        and not has_control(password)
+    )
+
+
 class AdminAuthMiddleware(BaseHTTPMiddleware):
     """Single-admin HTTP Basic gate for every route except the minimal liveness probe."""
 
@@ -144,10 +160,10 @@ class AdminAuthMiddleware(BaseHTTPMiddleware):
 
         expected_user = os.getenv("ADMIN_USERNAME", "")
         expected_password = os.getenv("ADMIN_PASSWORD", "")
-        if not expected_user or not expected_password:
+        if not _admin_credentials_are_safe(expected_user, expected_password):
             from fastapi.responses import JSONResponse
             return JSONResponse(
-                {"detail": "Administrative authentication is not configured"},
+                {"detail": "Administrative authentication is not configured safely"},
                 status_code=503,
             )
 
