@@ -1,5 +1,9 @@
 """Initial executable web/API foundation for Telegram Self AI."""
+from base64 import b64decode
+from binascii import Error as Base64Error
+from hmac import compare_digest
 from html import escape
+import os
 from urllib.parse import urlparse
 
 from fastapi import FastAPI
@@ -32,6 +36,50 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return response
 
 
+class AdminAuthMiddleware(BaseHTTPMiddleware):
+    """Single-admin HTTP Basic gate for every route except the minimal liveness probe."""
+
+    async def dispatch(self, request, call_next):
+        if request.url.path == "/api/health":
+            return await call_next(request)
+
+        settings = Settings.from_env()
+        if settings.app_env.lower() != "production":
+            return await call_next(request)
+
+        expected_user = os.getenv("ADMIN_USERNAME", "")
+        expected_password = os.getenv("ADMIN_PASSWORD", "")
+        if not expected_user or not expected_password:
+            from fastapi.responses import JSONResponse
+            return JSONResponse(
+                {"detail": "Administrative authentication is not configured"},
+                status_code=503,
+            )
+
+        authorization = request.headers.get("authorization", "")
+        username = password = ""
+        try:
+            scheme, encoded = authorization.split(" ", 1)
+            if scheme.lower() == "basic":
+                decoded = b64decode(encoded, validate=True).decode("utf-8")
+                username, password = decoded.split(":", 1)
+        except (ValueError, UnicodeDecodeError, Base64Error):
+            pass
+
+        user_ok = compare_digest(username.encode(), expected_user.encode())
+        password_ok = compare_digest(password.encode(), expected_password.encode())
+        if not (user_ok and password_ok):
+            from fastapi.responses import JSONResponse
+            return JSONResponse(
+                {"detail": "Authentication required"},
+                status_code=401,
+                headers={"WWW-Authenticate": 'Basic realm="GhYiAb Self Admin"'},
+            )
+        return await call_next(request)
+
+
+# Add auth first so security headers also cover auth error responses.
+app.add_middleware(AdminAuthMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 
 
