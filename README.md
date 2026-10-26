@@ -2,7 +2,7 @@
 
 Free and open-source self-hosted AI assistance and authorized Telegram automation toolkit.
 
-> Development status: core primitives are implemented and entering CI validation. Telegram Bot API, MTProto login/2FA, background workers, and a production-ready authenticated dashboard are not implemented yet.
+> Development status: core primitives and a bounded scheduler worker are implemented. Telegram Bot API, MTProto login/2FA, a production-ready authenticated dashboard, and the GhYiAb V2 integration are not implemented yet.
 
 ## Principles
 - Free and open source under MIT; personal and commercial use permitted.
@@ -14,34 +14,36 @@ Free and open-source self-hosted AI assistance and authorized Telegram automatio
 - FastAPI dashboard and non-sensitive health/status endpoints.
 - Basic security response headers and environment validation.
 - Declarative automation rules with allowlisted triggers, conditions, and actions; no user-supplied code execution.
-- SQLite one-shot job store with due-job lookup and lifecycle status.
+- SQLite job store with timezone-normalized timestamps, atomic due-job claiming, attempt tracking, and retry metadata.
+- Explicit-handler scheduler worker with bounded exponential backoff and sanitized error handling.
 - Fernet authenticated encryption vault for serialized session bytes.
 - SQLite audit trail with conservative secret redaction.
 - Provider-independent AI interface, disabled fallback, and Ollama adapter.
-- Docker foundation, CI for Python 3.11/3.12, and tests for the core primitives.
+- Docker foundation, CI for Python 3.11/3.12, and unit tests for the implemented primitives.
 
 ## Still pending
 - Telegram Bot API admin bot; MTProto login, 2FA, connect/disconnect/revoke, and device audit.
-- Background scheduler worker, job locking, retries, cancellation, and graceful shutdown.
+- Stale-job recovery after process crashes, worker process packaging, cancellation, and end-to-end scheduler operations.
 - Permission/RBAC layer and authenticated operational dashboard.
 - AI supervisor, intent detection, action planner, and approval for consequential actions.
 - Telegram event integrations, profile/message automation, and complete Persian/English RTL/LTR UI.
+- GhYiAb V2 source audit and integration; its Master Spec, STATUS, and implementation-gap report are not available in this repository context.
 - Security/dependency audit and clean-install verification.
 
 See docs/ROADMAP.md and docs/ARCHITECTURE.md.
 
 ## Requirements and local run
 - Python 3.11 or 3.12; pip and a virtual environment.
-- Clone this repository, check out feat/project-foundation, then install with: python -m pip install -e ".[dev]"
-- Start with: uvicorn app.main:app --host 127.0.0.1 --port 8000
+- Clone this repository, check out `feat/project-foundation`, then install with: `python -m pip install -e ".[dev]"`
+- Start with: `uvicorn app.main:app --host 127.0.0.1 --port 8000`
 - Dashboard: http://127.0.0.1:8000 ; API docs: http://127.0.0.1:8000/api/docs
-- Tests: python -m compileall -q app tests && python -m pytest
+- Tests: `python -m compileall -q app tests && python -m pytest`
 
 ## Module boundaries
-- Automation engine: evaluates typed rules and delegates to explicitly registered handlers; it does not send Telegram messages itself.
-- Scheduler store: persists jobs but does not run a worker or execute due jobs yet.
-- Session vault: encrypts serialized bytes; the key must remain outside the repository. This is not Telegram login or session revocation.
-- AI adapter: Ollama local HTTP support and safe failure results; AI does not directly execute sensitive account actions.
+- Automation engine evaluates typed rules and delegates to explicitly registered handlers; it does not send Telegram messages itself.
+- Scheduler store atomically claims due jobs; `JobWorker` invokes only explicitly registered handlers and applies bounded retry delays. Handlers should be idempotent. Stale running-job recovery is not implemented.
+- Session vault encrypts serialized bytes; the key must remain outside the repository. This is not Telegram login or session revocation.
+- AI adapter provides local Ollama HTTP support and safe failure results; AI does not directly execute sensitive account actions.
 
 ## Deployment and safety
 The default Compose setup binds to loopback. Do not expose this development foundation publicly before authentication, authorization, worker controls, and production hardening are implemented. Operate only accounts and channels you are authorized to manage. Do not spam or bypass Telegram limits. Never send session data or encryption keys to an AI provider.
