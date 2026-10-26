@@ -119,6 +119,62 @@ class JobStore:
             ).fetchall()
             return [self._decode(row) for row in claimed]
 
+    def recover_stale(
+        self,
+        now_iso: str,
+        *,
+        stale_after_seconds: int = 300,
+        max_attempts: int = 3,
+        limit: int = 100,
+    ) -> dict[str, int]:
+        """Recover expired worker leases transactionally.
+
+        Requeued jobs provide at-least-once delivery; handlers must be idempotent because a
+        process can crash after an external side effect but before marking the job complete.
+        """
+        if not 1 <= stale_after_seconds <= 86400:
+            raise ValueError("stale_after_seconds must be between 1 and 86400")
+        if not 1 <= max_attempts <= 20:
+            raise ValueError("max_attempts must be between 1 and 20")
+        if not 1 <= limit <= 1000:
+            raise ValueError("limit must be between 1 and 1000")
+        now = _utc_iso(now_iso)
+        now_dt = datetime.fromisoformat(now.replace("Z", "+00:00"))
+        cutoff = (now_dt - timedelta(seconds=stale_after_seconds)).isoformat(
+            timespec="microseconds"
+        ).replace("+00:00", "Z")
+        counts = {"requeued": 0, "failed": 0}
+        with closing(self._connect()) as db, db:
+            db.execute("BEGIN IMMEDIATE")
+            rows = db.execute(
+                """SELECT id, attempts, locked_at FROM scheduled_jobs
+                   WHERE status='running' AND locked_at IS NOT NULL AND locked_at<=?
+                   ORDER BY locked_at LIMIT ?""",
+                (cutoff, limit),
+            ).fetchall()
+            for row in rows:
+                if int(row["attempts"]) < max_attempts:
+                    cur = db.execute(
+                        """UPDATE scheduled_jobs
+                           SET status='pending', run_at=?, locked_at=NULL,
+                               last_error='WorkerLeaseExpired', updated_at=CURRENT_TIMESTAMP
+                           WHERE id=? AND status='running' AND locked_at=?""",
+                        (now, row["id"], row["locked_at"]),
+                    )
+                    if cur.rowcount:
+                        counts["requeued"] += 1
+                else:
+                    cur = db.execute(
+                        """UPDATE scheduled_jobs
+                           SET status='failed', locked_at=NULL,
+                               last_error='WorkerLeaseExpired', updated_at=CURRENT_TIMESTAMP
+                           WHERE id=? AND status='running' AND locked_at=?""",
+                        (row["id"], row["locked_at"]),
+                    )
+                    if cur.rowcount:
+                        counts["failed"] += 1
+        return counts
+
     def set_status(self, job_id: str, status: str) -> bool:
         if status not in self.VALID_STATUSES:
             raise ValueError("Invalid job status")
