@@ -1,0 +1,26 @@
+# Never send secrets or local state to the Docker build context
+.git/
+.github/
+.env
+.env.*
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+tests/
+data/
+backups/
+secrets/
+credentials/
+sessions/
+*.sqlite
+*.sqlite3
+*.sqlite-*
+*.db
+*.db-*
+*.session
+*.session-journal
+*.key
+*.pem
+*.log
