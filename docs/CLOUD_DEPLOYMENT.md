@@ -2,7 +2,7 @@
 
 ## Current decision
 
-**Not production-ready for public internet exposure.** A single-admin Basic-auth baseline and per-process login throttle now protect administrative routes in production mode, but RBAC, shared throttling, CSRF/session protections where applicable, production secret validation, and full operational hardening remain incomplete. The Compose profile binds the host port to loopback. Do not publish port 8000 directly.
+**Not production-ready for public internet exposure.** A single-admin Basic-auth baseline and per-process login throttle now protect administrative routes in production mode, but RBAC, shared throttling, CSRF/session protections where applicable, production secret validation, and full operational hardening remain incomplete. Production mode now rejects missing, weak, or malformed Basic-auth credentials. The Compose profile binds the host port to loopback. Do not publish port 8000 directly.
 
 ## Safe next-step deployment profile
 
@@ -17,10 +17,10 @@
 ## Release blockers
 
 - RBAC, CSRF/session protections where applicable, shared rate limiting for multi-worker deployments, and trusted proxy configuration.
-- Explicit production configuration validation and secure secret provisioning.
+- Complete production configuration validation and secure secret provisioning through host-managed secrets.
 - Production database/migration and backup/recovery plan.
 - Readiness checks, operational alerting, and deployment-level graceful-shutdown verification (worker entry point exists).
-- End-to-end tests and dependency/security audit.
+- Dedicated Telegram end-to-end test account and review of dependency-audit findings.
 - HTTPS/reverse-proxy configuration and deployment-specific network policy.
 - Operational alerting and documented incident response.
 
@@ -30,7 +30,7 @@
 - [ ] Public routes are reviewed; docs and admin actions are not anonymously accessible.
 - [ ] No secrets appear in Git history, build logs, API responses, or application logs.
 - [ ] Persistent data location and backup/restore are verified in the target deployment.
-- [ ] Container runs as non-root and has least-privilege filesystem/network access.
+- [x] Container runs as non-root; CI builds and smoke-tests it. Review least-privilege filesystem/network policy per host.
 - [ ] TLS, firewall, health checks, log retention, and restart behavior are verified.
 - [ ] Clean deployment and rollback have been tested.
 - [ ] Telegram integration tests run with a dedicated test account/bot and explicit consent.
