@@ -50,8 +50,9 @@ _auth_failures_lock = threading.Lock()
 def _auth_is_blocked(client_key: str, now: float) -> bool:
     with _auth_failures_lock:
         # Bound memory growth by removing expired entries on every lookup.
-        expired = [key for key, (_, _, blocked_until) in _auth_failures.items()
-                   if blocked_until <= now]
+        expired = [key for key, (window_start, _, blocked_until) in _auth_failures.items()
+                   if (blocked_until > 0 and blocked_until <= now)
+                   or now - window_start >= _AUTH_FAILURE_WINDOW_SECONDS]
         for key in expired:
             _auth_failures.pop(key, None)
         state = _auth_failures.get(client_key)
@@ -62,8 +63,9 @@ def _record_auth_failure(client_key: str, now: float) -> float:
     with _auth_failures_lock:
         # Remove expired entries and cap state so arbitrary client addresses cannot
         # grow the dictionary without bound.
-        for key, (_, _, blocked_until) in list(_auth_failures.items()):
-            if blocked_until <= now:
+        for key, (window_start, _, blocked_until) in list(_auth_failures.items()):
+            if ((blocked_until > 0 and blocked_until <= now)
+                    or now - window_start >= _AUTH_FAILURE_WINDOW_SECONDS):
                 _auth_failures.pop(key, None)
         state = _auth_failures.get(client_key)
         if state is None or now - state[0] >= _AUTH_FAILURE_WINDOW_SECONDS:
