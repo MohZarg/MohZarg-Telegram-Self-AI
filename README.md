@@ -4,7 +4,7 @@
 
 Telegram Self AI is being built as a self-hosted toolkit combining a web dashboard, Telegram administration bot, authorized Telegram account integration (MTProto), AI assistance, channel content workflows, automation, scheduling, monitoring, and Persian/English support.
 
-> **Development status: Early foundation.** This branch establishes project policies and planning documents. The application runtime and user-facing features are not implemented yet; planned capabilities below must not be considered available until code and tests are added.
+> **Development status: Early foundation.** The initial web dashboard and health/status API are implemented. Telegram, MTProto, AI, content engine, scheduler, and automation integrations are planned and are not yet implemented.
 
 ## Principles
 
@@ -15,29 +15,91 @@ Telegram Self AI is being built as a self-hosted toolkit combining a web dashboa
 - Self-hosted configuration and user control.
 - Secure handling of Telegram credentials, MTProto sessions, AI keys, and private data.
 
-## Planned capabilities
+## Current features
 
-- [ ] Web dashboard
+- [x] Minimal web status dashboard
+- [x] Health endpoint at /api/health
+- [x] Non-sensitive feature status at /api/status
+- [x] Basic security response headers
+- [x] Environment settings validation for the application port
+- [x] Docker image runs as a non-root user
+- [x] GitHub Actions CI for Python 3.11 and 3.12
+- [x] Initial automated tests
+- [ ] Authenticated operational dashboard
 - [ ] Telegram admin bot
 - [ ] Authorized Telegram account integration via MTProto
 - [ ] AI assistant with configurable provider
 - [ ] AI-assisted channel content creation and review
-- [ ] Automation engine
-- [ ] Scheduler and job queue
-- [ ] Monitoring and health checks
-- [ ] Persian and English interface (FA/EN), including RTL/LTR
-- [ ] Docker-based deployment
-- [ ] Automated tests and CI workflows
+- [ ] Automation engine, scheduler, and job queue
+- [ ] Full FA/EN localization and RTL/LTR support
 
-See [docs/ROADMAP.md](docs/ROADMAP.md) for implementation phases and acceptance goals.
+See [docs/ROADMAP.md](docs/ROADMAP.md) and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## Current setup
+## Requirements
 
-The application runtime is not implemented yet. Installation and run commands will be added after the implementation stack is selected and an executable application has been implemented and tested.
+- Python 3.11 or 3.12
+- pip and a virtual environment
+- Docker and Docker Compose are optional
 
-### Configuration template
+## Run locally
 
-When local development begins, copy `.env.example` to `.env` and populate credentials locally. Never commit `.env` or real secrets.
+Clone the repository and switch to the development branch while the initial implementation is being reviewed:
+
+```bash
+git clone https://github.com/MohZarg/MohZarg-Telegram-Self-AI.git
+cd MohZarg-Telegram-Self-AI
+git checkout feat/project-foundation
+python -m venv .venv
+```
+
+Activate the virtual environment:
+
+- Linux/macOS: `source .venv/bin/activate`
+- Windows PowerShell: `.venv\Scripts\Activate.ps1`
+
+Install the app and development dependencies, then start the server:
+
+```bash
+python -m pip install -e ".[dev]"
+uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+Open http://127.0.0.1:8000 for the dashboard and http://127.0.0.1:8000/api/docs for the API documentation.
+
+Health check:
+
+```bash
+python -c "from urllib.request import urlopen; print(urlopen('http://127.0.0.1:8000/api/health').read().decode())"
+```
+
+## Run tests
+
+```bash
+python -m compileall -q app tests
+python -m pytest
+```
+
+GitHub Actions runs these checks on pushes to the main and feature branches and on pull requests.
+
+## Docker
+
+Create a local environment file first:
+
+```bash
+cp .env.example .env
+```
+
+On Windows PowerShell, use `Copy-Item .env.example .env`. Then run:
+
+```bash
+docker compose up --build
+```
+
+The default Compose configuration binds the service to 127.0.0.1 on the host. Do not expose this development foundation publicly: authenticated access controls and production hardening are still required before adding operational features.
+
+## Configuration
+
+Copy `.env.example` to `.env` for local use. Populate only the values needed by the features you have configured. Never commit `.env`, API hashes, bot tokens, AI keys, Telegram sessions, databases, backups, or logs containing private data.
 
 ## Telegram account and safety
 
@@ -53,13 +115,9 @@ This project is intended to remain free and open source. If it helps you, you ma
 
 Donations are optional and do not unlock features. No donation URL has been configured yet.
 
-## Security
+## Security and contributions
 
-Please review [SECURITY.md](SECURITY.md). Do not post tokens, session files, or exploitable vulnerability details in public issues.
-
-## Contributing
-
-Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
+Review [SECURITY.md](SECURITY.md) before reporting security issues, and [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. Do not post credentials, session files, or exploitable vulnerability details in public issues.
 
 ## License
 
