@@ -21,8 +21,8 @@ A checklist item is complete only when code exists and relevant automated checks
 - [x] Document adapter responsibilities, secret boundaries, and implementation order.
 - [x] Add typed Telegram mode configuration validation for disabled/bot/mtproto/both, including fail-closed validation and tests.
 - [x] Add a minimal Bot API client for getMe and admin-chat-only plain-text send, with sanitized errors and fake-transport tests.
-- [ ] Wire validated settings into app lifecycle only after authorization and startup behavior are defined.
-- [ ] Add Bot API update polling/webhook, command allowlist, admin identity verification, and lifecycle controls.
+- [x] Wire Bot API settings into application startup with bot identity verification and graceful poller shutdown.
+- [x] Add Bot API long polling, exact admin user/chat verification, `/help`, `/start`, `/status` allowlist, and graceful lifecycle controls.\n- [ ] Add webhook support if needed, Telegram-aware rate limits/flood-wait handling, and broader operational tests.
 - [ ] Add a user-authorized MTProto adapter with login/2FA state-machine tests.
 - [ ] Add session connect/disconnect/revoke/status and device audit where supported.
 - [ ] Add Telegram-aware rate limits, flood-wait handling, retries, and cancellation.
