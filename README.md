@@ -25,12 +25,12 @@ GhYiAb Self is a free, open-source foundation for authorized Telegram account au
 - Fernet authenticated encryption vault for serialized session bytes.
 - SQLite audit trail with conservative secret redaction.
 - Provider-independent AI interface, disabled fallback, and Ollama adapter.
-- Telegram mode configuration validator for `disabled`, `bot`, `mtproto`, and `both`; missing/invalid selected-mode settings fail closed and secrets are excluded from the settings representation.
+- Telegram mode configuration validation; Bot API startup verification and long polling for exact admin user/chat IDs, with only `/help`, `/start`, and `/status` commands. Unsupported `mtproto` and `both` modes fail startup rather than pretending to be implemented.
 - Restricted async Telegram Bot API adapter with `getMe`, plain-text messaging only to the configured admin chat, injectable fake transport for tests, and sanitized error messages.
 - Cloud deployment safety gate, dual Telegram integration boundary, Docker foundation, CI for Python 3.11/3.12, and unit tests for implemented primitives.
 
 ## Still pending
-- Bot API update polling/webhook, admin identity verification beyond the configured destination, operational lifecycle, rate limits, and application startup wiring.
+- Webhook support, Telegram-aware flood-wait/rate limits, richer command policy, and MTProto integration.
 - MTProto client, login, 2FA, connect/disconnect/revoke, session lifecycle, and device audit.
 - Authentication, RBAC, rate limiting, and protected operational dashboard.
 - Worker process packaging, cancellation, operational controls, and end-to-end scheduler operations.
