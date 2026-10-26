@@ -75,8 +75,10 @@ A checklist item is complete only when code exists and relevant automated checks
 ## Phase 8 — Release readiness
 - [x] CI compiles/tests Python 3.11/3.12, validates Compose, builds/smoke-tests Docker, and runs a dependency audit.
 - [ ] Verify clean local and Docker installation.
-- [ ] Review Git history and ignore rules for secrets.
-- [ ] Document backup/recovery, limitations, deployment profiles, and key rotation.
+- [x] Add .gitignore and .dockerignore for environment files, runtime data, databases, backups, and sessions.
+- [ ] Review full Git history for secrets before public production release.
+- [x] Document SQLite backup/restore, worker profile, deployment limitations, and recovery precautions.
+- [ ] Complete key-rotation and target-host recovery drill.
 - [ ] Publish a versioned release only after integration tests and security review.
 
 ## Non-negotiable principles
