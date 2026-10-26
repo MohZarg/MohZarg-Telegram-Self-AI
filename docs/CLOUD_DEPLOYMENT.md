@@ -26,7 +26,7 @@
 
 ## Deployment acceptance checklist
 
-- [ ] Authentication and authorization tests pass.
+- [x] Production single-admin authentication and throttle tests pass in CI; RBAC and distributed throttling remain release blockers.
 - [ ] Public routes are reviewed; docs and admin actions are not anonymously accessible.
 - [ ] No secrets appear in Git history, build logs, API responses, or application logs.
 - [ ] Persistent data location and backup/restore are verified in the target deployment.
