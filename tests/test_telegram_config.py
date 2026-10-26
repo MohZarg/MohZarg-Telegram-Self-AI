@@ -12,6 +12,7 @@ def clear_telegram_env(monkeypatch):
         "TELEGRAM_API_HASH",
         "TELEGRAM_ADMIN_BOT_TOKEN",
         "TELEGRAM_ADMIN_CHAT_ID",
+        "TELEGRAM_ADMIN_USER_ID",
     ):
         monkeypatch.delenv(key, raising=False)
 
@@ -32,7 +33,9 @@ def test_rejects_unknown_mode(monkeypatch):
 def test_bot_mode_requires_token_and_admin_chat(monkeypatch):
     monkeypatch.setenv("TELEGRAM_MODE", "bot")
     monkeypatch.setenv("TELEGRAM_ADMIN_BOT_TOKEN", "test-token")
-    with pytest.raises(TelegramConfigurationError, match="TELEGRAM_ADMIN_CHAT_ID"):
+    monkeypatch.setenv("TELEGRAM_ADMIN_CHAT_ID", "123")
+    monkeypatch.setenv("TELEGRAM_ADMIN_USER_ID", "123")
+    with pytest.raises(TelegramConfigurationError, match="TELEGRAM_ADMIN_USER_ID"):
         TelegramSettings.from_env()
 
 
@@ -58,12 +61,14 @@ def test_both_mode_returns_validated_settings_without_exposing_secrets(monkeypat
     monkeypatch.setenv("TELEGRAM_API_HASH", "private-hash")
     monkeypatch.setenv("TELEGRAM_ADMIN_BOT_TOKEN", "private-token")
     monkeypatch.setenv("TELEGRAM_ADMIN_CHAT_ID", "-100123")
+    monkeypatch.setenv("TELEGRAM_ADMIN_USER_ID", "456")
 
     settings = TelegramSettings.from_env()
 
     assert settings.mode == "both"
     assert settings.api_id == 12345
     assert settings.admin_chat_id == -100123
+    assert settings.admin_user_id == 456
     assert "private-hash" not in repr(settings)
     assert "private-token" not in repr(settings)
 
