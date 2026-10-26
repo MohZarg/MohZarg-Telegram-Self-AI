@@ -5,13 +5,17 @@ This roadmap distinguishes planned work from verified implementation. A checklis
 ## Phase 0 — Repository foundation
 - [x] Confirm the existing public repository and write access.
 - [x] Establish a feature branch for foundational changes.
-- [ ] Add project documentation, safe configuration examples, and repository hygiene.
-- [ ] Select and document the implementation stack and supported deployment targets.
+- [x] Add project documentation, safe configuration examples, and repository hygiene.
+- [x] Select and document the initial Python/FastAPI stack.
+- [ ] Review the branch and CI results before merge.
 
 ## Phase 1 — Architecture and core
-- [ ] Define module boundaries, configuration validation, logging, and error handling.
-- [ ] Implement the core application and health/status checks.
-- [ ] Add automated tests and continuous integration.
+- [x] Define initial module boundaries and configuration validation.
+- [x] Implement the initial web application and health/status endpoints.
+- [x] Add initial automated tests and continuous integration workflow.
+- [x] Add a minimal status dashboard and non-root container definition.
+- [ ] Run CI and fix any failures.
+- [ ] Add structured logging, production-grade configuration, and authenticated dashboard access.
 
 ## Phase 2 — Telegram integration
 - [ ] Telegram Bot API integration for the admin bot.
@@ -30,12 +34,13 @@ This roadmap distinguishes planned work from verified implementation. A checklis
 - [ ] Monitoring, health checks, and actionable error reporting.
 
 ## Phase 5 — Web dashboard and localization
-- [ ] Dashboard for configuration, status, tasks, and logs.
-- [ ] Persian and English interfaces.
+- [x] Initial status dashboard foundation.
+- [ ] Authenticated dashboard for configuration, tasks, and logs.
+- [ ] Complete Persian and English interfaces.
 - [ ] Correct RTL/LTR layout behavior and accessible components.
 
 ## Phase 6 — Release readiness
-- [ ] Unit, integration, and installation tests.
+- [ ] Unit, integration, and installation tests pass in CI.
 - [ ] Dependency and security audit.
 - [ ] Review Git history for accidentally committed secrets.
 - [ ] Verify Docker/local deployment instructions on a clean environment.
