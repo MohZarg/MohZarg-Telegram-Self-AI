@@ -30,6 +30,7 @@ A checklist item is complete only when code exists and relevant automated checks
 ## Phase 3 — Cloud security and operations
 - [x] Document why public exposure is blocked and define deployment acceptance criteria.
 - [x] Compare initial cloud hosting candidates and document a provider-selection checklist; provider remains unselected.
+- [x] Assess zero-cost hosting options against persistent storage and always-on worker requirements; no provider selected.
 - [ ] Authentication, RBAC, protected operational routes, and rate limiting.
 - [ ] Production settings validation and managed secret provisioning.
 - [ ] Separate web/worker lifecycle, graceful shutdown, readiness checks, and operational alerts.
