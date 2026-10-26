@@ -44,7 +44,11 @@ GhYiAb Self is a free, open-source foundation for authorized Telegram account au
 - Clone this repository's `main` branch, then install with: `python -m pip install -e ".[dev]"`
 - Start with: `uvicorn app.main:app --host 127.0.0.1 --port 8000`
 - Dashboard: http://127.0.0.1:8000 ; API docs: http://127.0.0.1:8000/api/docs
-- Tests: `python -m compileall -q app tests && python -m pytest`\n- Optional worker (requires `TELEGRAM_MODE=bot` and valid admin bot settings): `python -m app.scheduler.runner`\n- Compose worker profile: `docker compose --profile worker up -d scheduler-worker`\n- SQLite backup: `python -m app.scheduler.backup backup ./data/jobs.sqlite3 ./backups/jobs-YYYYMMDD.sqlite3`\n- Restore (stop app and worker first): `python -m app.scheduler.backup restore ./backups/jobs-YYYYMMDD.sqlite3 ./data/jobs.sqlite3 --overwrite`
+- Tests: `python -m compileall -q app tests && python -m pytest`
+- Optional worker (requires `TELEGRAM_MODE=bot` and valid admin bot settings): `python -m app.scheduler.runner`
+- Compose worker profile: `docker compose --profile worker up -d scheduler-worker`
+- SQLite backup: `python -m app.scheduler.backup backup ./data/jobs.sqlite3 ./backups/jobs-YYYYMMDD.sqlite3`
+- Restore (stop app and worker first): `python -m app.scheduler.backup restore ./backups/jobs-YYYYMMDD.sqlite3 ./data/jobs.sqlite3 --overwrite`
 
 ## Module boundaries
 - Automation engine evaluates typed rules and delegates to explicitly registered handlers; it does not send Telegram messages itself.
