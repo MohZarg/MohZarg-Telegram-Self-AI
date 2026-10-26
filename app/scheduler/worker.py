@@ -60,8 +60,12 @@ class JobWorker:
         if current.tzinfo is None or current.utcoffset() is None:
             raise ValueError("now must be timezone-aware")
         now_iso = current.astimezone(timezone.utc).isoformat(timespec="microseconds").replace("+00:00", "Z")
+        recovery = self.store.recover_stale(now_iso, max_attempts=self.max_attempts)
         jobs = self.store.claim_due(now_iso, self.batch_size)
-        summary = {"claimed": len(jobs), "completed": 0, "retried": 0, "failed": 0}
+        summary = {
+            "claimed": len(jobs), "completed": 0, "retried": 0, "failed": 0,
+            "recovered": recovery["requeued"], "stale_failed": recovery["failed"],
+        }
         for job in jobs:
             handler = self.handlers.get(job["job_type"])
             if handler is None:
