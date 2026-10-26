@@ -33,7 +33,7 @@ GhYiAb Self is a free, open-source foundation for authorized Telegram account au
 - Webhook support, Telegram-aware flood-wait/rate limits, richer command policy, and MTProto integration.
 - MTProto client, login, 2FA, connect/disconnect/revoke, session lifecycle, and device audit.
 - Authentication, RBAC, rate limiting, and protected operational dashboard.
-- Worker process packaging, cancellation, operational controls, and end-to-end scheduler operations.
+- Dead-letter review UI, job cancellation API, distributed leases, and full end-to-end operations.
 - AI supervisor, intent detection, action planner, and approval for consequential actions.
 - Telegram event integrations, profile/message automation, and complete Persian/English RTL/LTR UI.
 - GhYiAb V2 source audit and integration; no separate V2 repository or Master Spec/STATUS/gap report has been identified.
@@ -44,14 +44,14 @@ GhYiAb Self is a free, open-source foundation for authorized Telegram account au
 - Clone this repository's `main` branch, then install with: `python -m pip install -e ".[dev]"`
 - Start with: `uvicorn app.main:app --host 127.0.0.1 --port 8000`
 - Dashboard: http://127.0.0.1:8000 ; API docs: http://127.0.0.1:8000/api/docs
-- Tests: `python -m compileall -q app tests && python -m pytest`
+- Tests: `python -m compileall -q app tests && python -m pytest`\n- Optional worker (requires `TELEGRAM_MODE=bot` and valid admin bot settings): `python -m app.scheduler.runner`\n- Compose worker profile: `docker compose --profile worker up -d scheduler-worker`\n- SQLite backup: `python -m app.scheduler.backup backup ./data/jobs.sqlite3 ./backups/jobs-YYYYMMDD.sqlite3`\n- Restore (stop app and worker first): `python -m app.scheduler.backup restore ./backups/jobs-YYYYMMDD.sqlite3 ./data/jobs.sqlite3 --overwrite`
 
 ## Module boundaries
 - Automation engine evaluates typed rules and delegates to explicitly registered handlers; it does not send Telegram messages itself.
 - Scheduler store atomically claims due jobs; `JobWorker` invokes only explicitly registered handlers and applies bounded retry delays. Handlers must be idempotent. Recovery is at-least-once and may repeat an external side effect after a crash.
 - Session vault encrypts serialized bytes; the key must remain outside the repository. This is not Telegram login or session revocation.
-- Bot API adapter only exposes identity lookup and sends plain text to one configured admin chat; it does not poll updates or authorize arbitrary chat targets.
-- Telegram configuration validation is a standalone boundary and is not wired into application startup.
+- Bot API polling accepts only fixed `/help`, `/start`, and `/status` commands from the configured admin user in the configured chat; scheduled notification jobs can send plain text only to the configured admin chat.
+- Telegram bot configuration is validated at app startup; MTProto and combined mode fail closed until the MTProto adapter exists.
 - AI adapter provides local Ollama HTTP support and safe failure results; AI does not directly execute sensitive account actions.
 
 ## Administrative access
