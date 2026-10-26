@@ -4,6 +4,8 @@ from binascii import Error as Base64Error
 from hmac import compare_digest
 from html import escape
 import os
+import threading
+import time
 from urllib.parse import urlparse
 
 from fastapi import FastAPI
@@ -36,6 +38,50 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return response
 
 
+# Conservative per-process throttle. For multi-worker deployments, enforce a shared
+# limiter at a trusted reverse proxy or shared store; this in-memory guard is not global.
+_AUTH_FAILURE_WINDOW_SECONDS = 60.0
+_AUTH_FAILURE_LIMIT = 5
+_AUTH_BLOCK_SECONDS = 60.0
+_auth_failures: dict[str, tuple[float, int, float]] = {}
+_auth_failures_lock = threading.Lock()
+
+
+def _auth_is_blocked(client_key: str, now: float) -> bool:
+    with _auth_failures_lock:
+        # Bound memory growth by removing expired entries on every lookup.
+        expired = [key for key, (_, _, blocked_until) in _auth_failures.items()
+                   if blocked_until <= now]
+        for key in expired:
+            _auth_failures.pop(key, None)
+        state = _auth_failures.get(client_key)
+        return bool(state and state[2] > now)
+
+
+def _record_auth_failure(client_key: str, now: float) -> float:
+    with _auth_failures_lock:
+        # Remove expired entries and cap state so arbitrary client addresses cannot
+        # grow the dictionary without bound.
+        for key, (_, _, blocked_until) in list(_auth_failures.items()):
+            if blocked_until <= now:
+                _auth_failures.pop(key, None)
+        state = _auth_failures.get(client_key)
+        if state is None or now - state[0] >= _AUTH_FAILURE_WINDOW_SECONDS:
+            count = 1
+            window_start = now
+            blocked_until = 0.0
+        else:
+            window_start, count, blocked_until = state
+            count += 1
+        if count >= _AUTH_FAILURE_LIMIT:
+            blocked_until = now + _AUTH_BLOCK_SECONDS
+        if len(_auth_failures) >= 10000 and client_key not in _auth_failures:
+            # Fail closed for this request when the limiter is saturated.
+            return now + _AUTH_BLOCK_SECONDS
+        _auth_failures[client_key] = (window_start, count, blocked_until)
+        return blocked_until
+
+
 class AdminAuthMiddleware(BaseHTTPMiddleware):
     """Single-admin HTTP Basic gate for every route except the minimal liveness probe."""
 
@@ -56,6 +102,18 @@ class AdminAuthMiddleware(BaseHTTPMiddleware):
                 status_code=503,
             )
 
+        client_key = request.client.host if request.client else "unknown"
+        now = time.monotonic()
+        if _auth_is_blocked(client_key, now):
+            from fastapi.responses import JSONResponse
+            state = _auth_failures.get(client_key)
+            retry_after = max(1, int(state[2] - now)) if state else int(_AUTH_BLOCK_SECONDS)
+            return JSONResponse(
+                {"detail": "Too many failed authentication attempts"},
+                status_code=429,
+                headers={"Retry-After": str(retry_after)},
+            )
+
         authorization = request.headers.get("authorization", "")
         username = password = ""
         try:
@@ -69,12 +127,22 @@ class AdminAuthMiddleware(BaseHTTPMiddleware):
         user_ok = compare_digest(username.encode(), expected_user.encode())
         password_ok = compare_digest(password.encode(), expected_password.encode())
         if not (user_ok and password_ok):
+            blocked_until = _record_auth_failure(client_key, now)
+            if blocked_until > now:
+                from fastapi.responses import JSONResponse
+                return JSONResponse(
+                    {"detail": "Too many failed authentication attempts"},
+                    status_code=429,
+                    headers={"Retry-After": str(max(1, int(blocked_until - now)))},
+                )
             from fastapi.responses import JSONResponse
             return JSONResponse(
                 {"detail": "Authentication required"},
                 status_code=401,
                 headers={"WWW-Authenticate": 'Basic realm="GhYiAb Self Admin"'},
             )
+        with _auth_failures_lock:
+            _auth_failures.pop(client_key, None)
         return await call_next(request)
 
 
