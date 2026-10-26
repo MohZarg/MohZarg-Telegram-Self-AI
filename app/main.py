@@ -10,7 +10,7 @@ from app.config import Settings
 
 app = FastAPI(
     title="MohZarg Telegram Self AI",
-    description="Free, self-hosted AI assistant and authorized Telegram automation toolkit.",
+    description="Free, self-hosted AI assistance and authorized Telegram automation toolkit.",
     version="0.1.0",
     docs_url="/api/docs",
     redoc_url=None,
@@ -23,9 +23,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("X-Frame-Options", "DENY")
         response.headers.setdefault("Referrer-Policy", "no-referrer")
-        response.headers.setdefault(
-            "Permissions-Policy", "camera=(), microphone=(), geolocation=()"
-        )
+        response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
         response.headers.setdefault(
             "Content-Security-Policy",
             "default-src 'self'; style-src 'self' 'unsafe-inline'; "
@@ -52,7 +50,7 @@ def health():
 
 @app.get("/api/status", tags=["system"])
 def status():
-    """Expose non-sensitive runtime status for the dashboard."""
+    """Expose non-sensitive runtime status without overstating integrations."""
     settings = Settings.from_env()
     return {
         "status": "operational",
@@ -60,12 +58,18 @@ def status():
         "features": {
             "web_dashboard": True,
             "health_api": True,
+            "automation_rule_engine": True,
+            "scheduler_sqlite_store": True,
+            "encrypted_session_vault": True,
+            "audit_log": True,
+            "ai_provider_interface": True,
+            "ollama_adapter": True,
             "telegram_bot": False,
             "mtproto_account": False,
-            "ai_assistant": False,
+            "ai_assistant_workflow": False,
             "content_engine": False,
-            "automation": False,
-            "scheduler": False,
+            "automation_worker": False,
+            "scheduler_worker": False,
             "monitoring": True,
             "localization": ["en", "fa"],
         },
@@ -82,7 +86,7 @@ def dashboard():
         safe_url = escape(settings.donation_url, quote=True)
         donate = (
             f'<a class="donate" href="{safe_url}" target="_blank" '
-            'rel="noopener noreferrer">❤️ Support Development</a>'
+            'rel="noopener noreferrer">Support Development</a>'
         )
     html = """<!doctype html>
 <html lang="en">
@@ -106,9 +110,9 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding-top:20px;color:v
 <p>A self-hosted foundation for AI assistance and authorized Telegram workflows.</p>
 <span class="pill">Free &amp; Open Source</span> <span class="pill">Early Development</span>
 <section class="grid" aria-label="Project status">
-<article class="card"><h2>Web dashboard</h2><span class="pill">Available · foundation</span><p>Basic project status and health API.</p></article>
-<article class="card"><h2>Telegram integrations</h2><span class="pill">Planned</span><p>Bot API and authorized MTProto account integration are not implemented yet.</p></article>
-<article class="card"><h2>AI and automation</h2><span class="pill">Planned</span><p>Assistant, content workflows, scheduler, and automation are future milestones.</p></article>
+<article class="card"><h2>Core primitives</h2><span class="pill">Available</span><p>Rule evaluation, SQLite job storage, encrypted session-byte vault, redacted audit log, and an AI provider adapter.</p></article>
+<article class="card"><h2>Telegram integrations</h2><span class="pill">Planned</span><p>Telegram Bot API, MTProto login, 2FA, session lifecycle, and rate-aware execution are not connected yet.</p></article>
+<article class="card"><h2>Workers and dashboard</h2><span class="pill">In progress</span><p>Durable job storage exists; background workers, authentication, RBAC, and full Persian/English UI remain pending.</p></article>
 </section>
 <p>Current service status: <strong id="health">Checking…</strong></p>
 __DONATE__
