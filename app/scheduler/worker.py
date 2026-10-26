@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 from datetime import datetime, timedelta, timezone
+import logging
 import threading
 from typing import Any
 
@@ -77,7 +78,7 @@ class JobWorker:
             except Exception as exc:
                 # Never persist exception messages: they can contain payloads or credentials.
                 error = type(exc).__name__
-                delay_seconds = min(2 ** max(0, int(job["attempts"]) - 1), 300)
+                delay_seconds = min(2 ** int(job["attempts"]), 300)
                 retry_at = (current + timedelta(seconds=delay_seconds)).isoformat(
                     timespec="microseconds"
                 ).replace("+00:00", "Z")
@@ -97,8 +98,9 @@ class JobWorker:
         while not stop_event.is_set():
             try:
                 self.run_once()
-            except Exception:
-                # Keep the worker alive on transient store/clock failures; caller should log
-                # the exception at the process boundary without dumping job payloads.
-                pass
+            except Exception as exc:
+                # Log the exception type only; exception text can contain payloads or secrets.
+                logging.getLogger(__name__).error(
+                    "scheduler iteration failed (%s)", type(exc).__name__
+                )
             stop_event.wait(poll_interval)
