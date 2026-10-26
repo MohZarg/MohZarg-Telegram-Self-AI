@@ -22,6 +22,7 @@ class TelegramSettings:
     api_hash: str | None = field(default=None, repr=False)
     bot_token: str | None = field(default=None, repr=False)
     admin_chat_id: int | None = None
+    admin_user_id: int | None = None
 
     @classmethod
     def from_env(cls) -> "TelegramSettings":
@@ -39,7 +40,9 @@ class TelegramSettings:
         bot_token = os.getenv("TELEGRAM_ADMIN_BOT_TOKEN", "").strip()
         raw_api_id = os.getenv("TELEGRAM_API_ID", "").strip()
         raw_chat_id = os.getenv("TELEGRAM_ADMIN_CHAT_ID", "").strip()
+        raw_user_id = os.getenv("TELEGRAM_ADMIN_USER_ID", "").strip()
         chat_id: int | None = None
+        user_id: int | None = None
 
         if mode in {"mtproto", "both"}:
             try:
@@ -72,6 +75,16 @@ class TelegramSettings:
                 raise TelegramConfigurationError(
                     "TELEGRAM_ADMIN_CHAT_ID must be a non-zero integer for the selected mode"
                 )
+            try:
+                user_id = int(raw_user_id)
+            except (TypeError, ValueError) as exc:
+                raise TelegramConfigurationError(
+                    "TELEGRAM_ADMIN_USER_ID must be a non-zero integer for the selected mode"
+                ) from exc
+            if user_id == 0:
+                raise TelegramConfigurationError(
+                    "TELEGRAM_ADMIN_USER_ID must be a non-zero integer for the selected mode"
+                )
 
         return cls(
             mode=mode,
@@ -79,4 +92,5 @@ class TelegramSettings:
             api_hash=api_hash or None,
             bot_token=bot_token or None,
             admin_chat_id=chat_id,
+            admin_user_id=user_id,
         )

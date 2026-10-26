@@ -6,7 +6,7 @@ The planned product supports both:
 - **Bot API** for an administrative bot and bot-authorized workflows.
 - **MTProto** for a user-authorized Telegram account session, including explicit login and 2FA handling.
 
-The initial Bot API adapter is implemented as a restricted client with `getMe` and plain-text send to a single configured admin chat. It does not poll updates, register webhooks, start at application boot, or provide a command/authorization system. The standalone `app.telegram.config` module validates mode and required environment values, but configuration is not wired into application startup. MTProto is not implemented.
+The Bot API adapter supports `getMe`, plain-text send to one configured admin chat, and restricted long polling. On startup in `TELEGRAM_MODE=bot`, the app validates configuration, verifies the bot identity, and starts a poller with only `/help`, `/start`, and `/status` commands. Commands are accepted only when both the sender user ID and chat ID exactly match configured values. Unknown commands and ordinary messages are ignored. Webhooks and MTProto are not implemented; `mtproto` and `both` modes fail startup rather than pretending to work.
 
 ## Separation of responsibilities
 
@@ -34,7 +34,7 @@ The initial Bot API adapter is implemented as a restricted client with `getMe` a
 - `TELEGRAM_API_ID`: MTProto application ID from the official Telegram developer portal.
 - `TELEGRAM_API_HASH`: MTProto application hash; secret.
 - `TELEGRAM_ADMIN_BOT_TOKEN`: Bot API token; secret.
-- `TELEGRAM_ADMIN_CHAT_ID`: expected admin chat/user identifier; must be validated and allowlisted.
+- `TELEGRAM_ADMIN_CHAT_ID`: exact destination chat ID, allowlisted by the poller.\n- `TELEGRAM_ADMIN_USER_ID`: exact Telegram sender user ID authorized to issue the allowlisted commands.
 - `SESSION_ENCRYPTION_KEY`: dedicated Fernet-compatible key managed outside Git, not the same as an API credential.
 - `TELEGRAM_MODE`: `disabled`, `bot`, `mtproto`, or `both`. The standalone validator supports these values; clients are not yet wired into application startup.
 
@@ -44,13 +44,13 @@ Do not paste these values into issues, pull requests, chat messages, or source f
 
 1. [x] Add typed configuration and fail-closed validation for each selected mode.
 2. [x] Add a restricted Bot API client and fake-transport tests.
-3. [ ] Add Bot API update polling/webhook, explicit admin identity verification, command allowlist, and lifecycle management.
-4. [ ] Add an MTProto client behind a separate adapter interface, plus login/2FA state-machine tests.
-5. [ ] Add explicit connect/disconnect/revoke controls and device audit where supported.
-6. [ ] Add secret/session encryption, rotation and deletion behavior, and redacted audit events.
-7. [ ] Add Telegram-aware flood-wait handling, rate limits, cancellation, retries, and idempotency safeguards.
-8. [ ] Add integration tests using a dedicated bot and test account; do not use production credentials in CI.
-9. [ ] Connect both adapters to the scheduler only after authorization and policy gates are in place.
+3. [x] Add Bot API long polling, exact admin user/chat verification, a minimal command allowlist, and application lifecycle management.\n4. [ ] Add webhook support only if a deployment requires it.
+5. [ ] Add an MTProto client behind a separate adapter interface, plus login/2FA state-machine tests.
+6. [ ] Add explicit connect/disconnect/revoke controls and device audit where supported.
+7. [ ] Add secret/session encryption, rotation and deletion behavior, and redacted audit events.
+8. [ ] Add Telegram-aware flood-wait handling, rate limits, cancellation, retries, and idempotency safeguards.
+9. [ ] Add integration tests using a dedicated bot and test account; do not use production credentials in CI.
+10. [ ] Connect both adapters to the scheduler only after authorization and policy gates are in place.
 
 ## Explicitly out of scope
 

@@ -62,3 +62,14 @@ def test_rejects_empty_message_and_invalid_admin_id():
         asyncio.run(client.send_admin_message("   "))
     with pytest.raises(ValueError, match="admin chat ID"):
         TelegramBotAPI(token="test-token", admin_chat_id=0)
+
+
+def test_get_updates_uses_long_poll_payload():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path.endswith("/getUpdates")
+        payload = json.loads(request.content)
+        assert payload == {"timeout": 20, "allowed_updates": ["message"], "offset": 12}
+        return httpx.Response(200, json={"ok": True, "result": [{"update_id": 12}]})
+
+    client = TelegramBotAPI(token="test-token", admin_chat_id=123, transport=httpx.MockTransport(handler))
+    assert asyncio.run(client.get_updates(offset=12)) == [{"update_id": 12}]
